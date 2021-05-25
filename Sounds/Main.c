@@ -135,7 +135,7 @@ void MM_render_one_buffer() {
 
     while (AL_PLAYING == current_playing_state) {
 
-        printf("still playing ... so sleep\r\n");
+       // printf("still playing ... so sleep\r\n");
 
         sleep(1);   // should use a thread sleep NOT sleep() for a more responsive finish
 
@@ -203,7 +203,7 @@ void MM_render_one_buffer2() {
 
     while (AL_PLAYING == current_playing_state) {
 
-        printf("still playing ... so sleep\r\n");
+        //printf("still playing ... so sleep\r\n");
 
         sleep(1);   // should use a thread sleep NOT sleep() for a more responsive finish
 
@@ -214,7 +214,6 @@ void MM_render_one_buffer2() {
     printf("end of playing\r\n");
 
     /* Dealloc OpenAL */
-    
 
 }   //  MM_render_one_buffer
 
@@ -223,7 +222,7 @@ int main(int argc, char *argv[])
    int c, done;
 
    set_getch_mode();
-	MM_init_al();
+	
 	
    printf("Press ctrl-C to finish\r\n");
 
@@ -246,11 +245,15 @@ int main(int argc, char *argv[])
          case 'w':
          case 'W':
             printf("w pressed\r\n");
+            MM_init_al();
             //MM_render_one_buffer();
 			pthread_create(&thread1, NULL, (void *) MM_render_one_buffer, NULL);
 			usleep(500000);
 			//MM_render_one_buffer2();
 			pthread_create(&thread2, NULL, (void *) MM_render_one_buffer2, NULL);
+			pthread_join(thread1, NULL);
+			pthread_join(thread2, NULL);
+			MM_exit_al();
             break;
 
          case 'a':
@@ -268,7 +271,7 @@ int main(int argc, char *argv[])
             printf("x pressed\r\n");
             break;
       }
-
+		
       usleep(1000); 
   }
 }
