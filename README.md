@@ -9,4 +9,4 @@ $ cmake ..
 $ make
 $ sudo ./RTS_Synthesizer /dev/input/event4
 ```
-Add rignt device path for keyboard as argument
+Add right device path for keyboard as argument
