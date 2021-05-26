@@ -23,9 +23,9 @@ void KeyboardMonitor (void)
 	unsigned long bit[EV_MAX][NBITS(KEY_MAX)];
 
 	//----- OPEN THE INPUT DEVICE -----
-	if ((FileDevice = open("/dev/input/event0", O_RDONLY)) < 0)		//<<<<SET THE INPUT DEVICE PATH HERE
+	if ((FileDevice = open("/dev/input/event4", O_RDONLY)) < 0)		//<<<<SET THE INPUT DEVICE PATH HERE
 	{
-		perror("KeyboardMonitor can't open input device");
+		perror("KeyboardMonitor can't open input device\r\n");
 		close(FileDevice);
 		return;
 	}
@@ -33,7 +33,7 @@ void KeyboardMonitor (void)
 	//----- GET DEVICE VERSION -----
 	if (ioctl(FileDevice, EVIOCGVERSION, &version))
 	{
-		perror("KeyboardMonitor can't get version");
+		perror("KeyboardMonitor can't get version\r\n");
 		close(FileDevice);
 		return;
 	}
@@ -50,12 +50,12 @@ void KeyboardMonitor (void)
 	while (1)
 	{
 		ReadDevice = read(FileDevice, InputEvent, sizeof(struct input_event) * 64);
-		printf("number of events: %d \r\n", ReadDevice / sizeof(struct input_event));
+		//printf("number of events: %d \r\n", ReadDevice / sizeof(struct input_event));
 		if (ReadDevice < (int) sizeof(struct input_event))
 		{
 			//This should never happen
-			printf("haha fail");
-			//perror("KeyboardMonitor error reading - keyboard lost?");
+			printf("haha fail\r\n");
+			perror("KeyboardMonitor error reading - keyboard lost?");
 			close(FileDevice);
 			return;
 		}
@@ -80,12 +80,12 @@ void KeyboardMonitor (void)
 					else if (InputEvent[Index].value == 1)
 					{
 						//----- KEY DOWN -----
-						printf("key down");
+						printf("key down\r\n");
 					}
 					else if (InputEvent[Index].value == 0)
 					{
 						//----- KEY UP -----
-						printf("key up");
+						printf("key up\r\n");
 					}
 				}
 			}
