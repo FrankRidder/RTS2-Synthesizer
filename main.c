@@ -5,6 +5,7 @@
 
 //Functions used by threads
 #include "KeyboardEvents/inputThread.h"
+#include "Sounds/SoundManager.h"
 
 #define NTHREADS 4
 
@@ -12,6 +13,8 @@ int main(int argc, char *argv[]) {
     int status = 0;
 
     struct sched_param param;
+
+    al_init();
 
     pthread_t threads[NTHREADS];
     pthread_attr_t tattr;

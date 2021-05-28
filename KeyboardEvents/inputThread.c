@@ -1,4 +1,6 @@
 #include "inputThread.h"
+//test
+#include "../Sounds/SoundManager.h"
 
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
@@ -51,6 +53,8 @@ void *KeyboardMonitor(void *pathname) {
         }
         else
         {
+            // Array to keep track of which keys have been pressed, so its associated tone can be stopped
+            static int keyTracker[4] = {0, 0, 0, 0};
             for (Index = 0; Index < ReadDevice / sizeof(struct input_event); Index++)
             {
                 //We have:
@@ -71,11 +75,27 @@ void *KeyboardMonitor(void *pathname) {
                     {
                         //----- KEY DOWN -----
                         printf("key down\r\n");
+                        for (int i = 0; i < 4; i++) {
+                            if (keyTracker[i] == 0) {
+                                keyTracker[i] = InputEvent[Index].code;
+                                
+                                // Semi random frequency from key code between 0-20KHz
+                                int frequency = (InputEvent[Index].code * 100) % 20000; 
+                                playInLoop(i, frequency);
+                                break;
+                            }
+                        }
                     }
                     else if (InputEvent[Index].value == 0)
                     {
                         //----- KEY UP -----
                         printf("key up\r\n");
+                        for (int i = 0; i < 4; i++) {
+                            if (keyTracker[i] == InputEvent[Index].code) {
+                                keyTracker[i] = 0;
+                                stopPlaying(i);
+                            }
+                        }
                     }
                 }
             }
