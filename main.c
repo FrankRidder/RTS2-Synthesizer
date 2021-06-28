@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <termios.h>
 
 //Functions used by threads
 #include "KeyboardEvents/inputThread.h"
@@ -15,6 +16,14 @@ int main(int argc, char *argv[]) {
     struct sched_param param;
 
     al_init();
+
+    // Turn echo off
+    struct termios term;
+    tcgetattr(fileno(stdin), &term);
+    term.c_lflag &= ~ECHO;
+    tcsetattr(fileno(stdin), 0, &term);
+
+
 
     pthread_t threads[NTHREADS];
     pthread_attr_t tattr;
