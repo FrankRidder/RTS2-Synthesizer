@@ -2,7 +2,7 @@
 #define SHARED_H
 
 #define SAMPLES_PER_BUFFER			1024
-#define STREAM_FREQUENCY			44100
+#define SAMPLE_RATE                 44100
 
 typedef void* TASK;
 
