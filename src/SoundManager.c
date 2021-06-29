@@ -1,4 +1,4 @@
-#include "KeyboardMonitor.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>    // gives malloc
@@ -11,6 +11,10 @@
 #include <AL/alc.h>
 
 #include <assert.h>
+
+/* For testing */
+#include "waveGenerator.h"
+
 
 #define  NBUFFERS 4
 
@@ -82,9 +86,11 @@ void playInLoop(int source, int frequency)
     // allocate PCM audio buffer        
     short * samples = malloc(sizeof(short) * buf_size);
     
-    for (int i = 0; i < buf_size; ++i) {
-        samples[i] = 32760 * sin( (2.f * my_pi * frequency) / sample_rate * i );
-    }
+    // for (int i = 0; i < buf_size; ++i) {
+    //     samples[i] = 32760 * sin( (2.f * my_pi * frequency) / sample_rate * i );
+    // }
+    generateSquare(frequency, samples, buf_size);
+
     alGenBuffers(1, &internal_buffer[source]);
     al_check_error("alGenBuffers");
 

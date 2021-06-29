@@ -5,8 +5,8 @@
 #include <termios.h>
 
 //Functions used by threads
-#include "KeyboardEvents/inputThread.h"
-#include "Sounds/SoundManager.h"
+#include "inputThread.h"
+#include "SoundManager.h"
 
 #include "shared.h"
 
