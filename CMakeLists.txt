@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_C_STANDARD 99)
 
 project(RTS_Synthesizer C)
+add_subdirectory(src)
 
 add_executable(RTS_Synthesizer main.c 
-	KeyboardEvents/inputThread.h KeyboardEvents/inputThread.c
-	Sounds/SoundManager.h Sounds/SoundManager.c
+	inputThread.h inputThread.c
+	SoundManager.h SoundManager.c
+	waveGenerator.h waveGenerator.c
 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)

@@ -8,7 +8,11 @@
 #include "KeyboardEvents/inputThread.h"
 #include "Sounds/SoundManager.h"
 
+#include "shared.h"
+
+
 #define NTHREADS 4
+
 
 int main(int argc, char *argv[]) {
     int status = 0;
