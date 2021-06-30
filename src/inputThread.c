@@ -73,6 +73,13 @@ void *KeyboardMonitor(void *pathname) {
                     }
                     else if (InputEvent[Index].value == 1)
                     {
+                        if (InputEvent[Index].code == KEY_ESC)
+                        {
+                            printf("Closing\n");
+                            al_exit();
+                            return 0;
+                        }
+
                         //----- KEY DOWN -----
                         printf("key down\r\n");
                         for (int i = 0; i < 4; i++) {
@@ -80,7 +87,8 @@ void *KeyboardMonitor(void *pathname) {
                                 keyTracker[i] = InputEvent[Index].code;
                                 
                                 // Semi random frequency from key code between 0-20KHz
-                                int frequency = (InputEvent[Index].code * 100) % 20000; 
+                                //int frequency = (InputEvent[Index].code * 100) % 20000; 
+                                int frequency = 440;
                                 playInLoop(i, frequency);
                                 break;
                             }

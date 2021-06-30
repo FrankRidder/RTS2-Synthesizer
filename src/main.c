@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <signal.h>
 
 //Functions used by threads
 #include "inputThread.h"
@@ -13,9 +14,19 @@
 
 #define NTHREADS 4
 
+// Signal Handler for SIGTSTP, we will get huge memory leaks if not closing properly.
+void sighandler(int sig_num)
+{
+    // Reset handler to catch SIGTSTP next time
+    signal(SIGTSTP, sighandler);
+    printf("Cannot execute Ctrl+Z, use ESC instead\n");
+}
 
 int main(int argc, char *argv[]) {
     int status = 0;
+    // Set the SIGTSTP (Ctrl-Z) signal handler
+    // to sigHandler
+    signal(SIGTSTP, sighandler);
 
     struct sched_param param;
 
@@ -50,6 +61,15 @@ int main(int argc, char *argv[]) {
         printf("While creating thread 1, pthread_create returned error code %d\r\n", status);
         exit(-1);
     }
+    pthread_join(threads[0], NULL);
 
-    pthread_exit(NULL);
+
+    int stdin_copy = dup(STDIN_FILENO);
+    /* remove garbage from stdin */
+    tcdrain(stdin_copy);
+    tcflush(stdin_copy, TCIFLUSH);
+    close(stdin_copy);
+    term.c_lflag |= ECHO;  /* turn on ECHO */
+    tcsetattr(fileno(stdin), 0, &term);
+    return 0;
 }

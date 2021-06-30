@@ -14,6 +14,7 @@
 
 /* For testing */
 #include "waveGenerator.h"
+#include "filter.h"
 
 
 #define  NBUFFERS 4
@@ -23,6 +24,8 @@ ALCcontext * openal_output_context;
 
 ALuint internal_buffer[NBUFFERS];
 ALuint streaming_source[NBUFFERS];
+
+
 
 int al_check_error(const char * given_label) {
 
@@ -47,6 +50,8 @@ void al_init() {
 
     alGenSources(NBUFFERS, streaming_source);
     al_check_error("alGenSources");
+
+    
 }
 
 void al_exit() { 
@@ -71,6 +76,28 @@ void al_exit() {
     errorCode = alGetError();
     alcDestroyContext(openal_output_context);
     alcCloseDevice(openal_output_device);
+
+    
+}
+
+float filter(float cutofFreq){
+    float RC = 1.0/(cutofFreq * 2 * M_PI);
+    float dt = 1.0/SAMPLE_RATE;
+    float alpha = dt/(RC+dt);
+
+    return alpha;
+}
+
+void band_pass_example()
+{
+    BWBandPass* filter = create_bw_band_pass_filter(4, 250, 2, 45);
+    
+    for(int i = 0; i < 100; i++){
+        printf("Output[%d]:%f\n", i, bw_band_pass(filter, i* 100));
+    }
+
+    free_bw_band_pass(filter);
+
 }
 
 
@@ -81,23 +108,38 @@ void playInLoop(int source, int frequency)
     //alGenSources(1, &streaming_source[source]);
     unsigned sample_rate = 44100;
     double my_pi = 3.14159;
-    size_t buf_size = 1 * sample_rate;
+    size_t buf_size = 10 * sample_rate;
 
     // allocate PCM audio buffer        
     short * samples = malloc(sizeof(short) * buf_size);
+    short * filtered_samples = malloc(sizeof(short) * buf_size);
     
     // for (int i = 0; i < buf_size; ++i) {
     //     samples[i] = 32760 * sin( (2.f * my_pi * frequency) / sample_rate * i );
     // }
-    generateSquare(frequency, samples, buf_size);
+    generateSaw(frequency, samples, buf_size);
+
+    BWLowPass* filter_bw = create_bw_low_pass_filter(4, 44100, 250);
+    for(int i = 1; i < buf_size; i++) {
+        filtered_samples[i] = bw_low_pass(filter_bw, samples[i] * 10);
+    }
+    free_bw_low_pass(filter_bw);
+    /* Simple low pass filter
+        float a = filter(50);
+        filtered_samples[0] = a * samples[0];
+        for(int i = 1; i < buf_size; i++) {
+            filtered_samples[i] = filtered_samples[i - 1] + (a*(samples[i] - filtered_samples[i - 1]));
+        }
+    */
 
     alGenBuffers(1, &internal_buffer[source]);
     al_check_error("alGenBuffers");
 
-    alBufferData( internal_buffer[source], AL_FORMAT_MONO16, samples, buf_size, sample_rate);
+    alBufferData( internal_buffer[source], AL_FORMAT_MONO16, filtered_samples, buf_size, sample_rate);
     al_check_error("alBufferData");
     
     free(samples);
+    free(filtered_samples);
 
     // Turn on looping and attach buffer
     alSourcei(streaming_source[source], AL_LOOPING, 1);
