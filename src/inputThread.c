@@ -1,11 +1,13 @@
 #include "inputThread.h"
+#include "shared.h"
+
 //test
 #include "SoundManager.h"
 
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
 
-void *KeyboardMonitor(void *pathname) {
+TASK KeyboardMonitor(TASK pathname) {
     int FileDevice;
     int ReadDevice;
     int Index;

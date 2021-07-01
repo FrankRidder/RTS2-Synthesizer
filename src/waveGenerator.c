@@ -1,4 +1,5 @@
 #include "waveGenerator.h"
+#include "shared.h"
 
 /*
  *  Generate sin wave from -32760 to 32760
