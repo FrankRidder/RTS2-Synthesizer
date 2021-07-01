@@ -7,7 +7,8 @@ add_executable(RTS_Synthesizer
 	src/main.c 
 	src/inputThread.h 	src/inputThread.c
 	src/SoundManager.h 	src/SoundManager.c
-	src/waveGenerator.h src/waveGenerator.c
+	src/waveGenerator.h 	src/waveGenerator.c
+	src/filter.h		src/filter.c
 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
