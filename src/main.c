@@ -31,6 +31,7 @@ int main(int argc, char *argv[]) {
     struct sched_param param;
 
     al_init();
+    
 
     // Turn echo off
     struct termios term;
@@ -51,12 +52,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    KeyboardSetup((void*)argv[1]);
+
     /* setting the new scheduling param */
     pthread_attr_setschedparam(&tattr, &param);
 
     printf("Creating threads .. \r\n");
 
-    status = pthread_create(&threads[0], &tattr, KeyboardMonitor, (void *) argv[1]);    //Create threads
+    status = pthread_create(&threads[0], &tattr, KeyboardMonitor, NULL);    //Create threads
     if (status != 0) {
         printf("While creating thread 1, pthread_create returned error code %d\r\n", status);
         exit(-1);

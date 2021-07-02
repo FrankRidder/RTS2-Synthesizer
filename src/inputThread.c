@@ -1,5 +1,4 @@
 #include "inputThread.h"
-#include "shared.h"
 
 //test
 #include "SoundManager.h"
@@ -7,11 +6,11 @@
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
 
-TASK KeyboardMonitor(TASK pathname) {
-    int FileDevice;
-    int ReadDevice;
-    int Index;
-    struct input_event InputEvent[64];
+static int FileDevice;
+static int ReadDevice;
+
+int KeyboardSetup(TASK pathname)
+{  
     int version;
     unsigned short id[4];
     unsigned long bit[EV_MAX][NBITS(KEY_MAX)];
@@ -40,6 +39,14 @@ TASK KeyboardMonitor(TASK pathname) {
     memset(bit, 0, sizeof(bit));
     ioctl(FileDevice, EVIOCGBIT(0, EV_MAX), bit[0]);
     printf("Waiting for input...\r\n");
+    return 1;
+}
+
+TASK KeyboardMonitor() 
+{
+    struct input_event InputEvent[64];
+    int Index;
+
     //----- READ KEYBOARD EVENTS -----
     while (1)
     {

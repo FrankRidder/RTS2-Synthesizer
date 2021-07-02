@@ -119,7 +119,7 @@ void playInLoop(int source, int frequency)
     // }
     generateSaw(frequency, samples, buf_size);
 
-    BWLowPass* filter_bw = create_bw_low_pass_filter(4, 44100, 250);
+    BWLowPass* filter_bw = create_bw_low_pass_filter(4, 44100, 2000);
     for(int i = 1; i < buf_size; i++) {
         filtered_samples[i] = bw_low_pass(filter_bw, samples[i] * 10);
     }

@@ -7,7 +7,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "shared.h"
 
-void *KeyboardMonitor (void *pathname);
+int KeyboardSetup(TASK pathname);
+TASK KeyboardMonitor ();
 
 #endif
