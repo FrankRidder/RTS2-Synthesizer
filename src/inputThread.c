@@ -48,7 +48,7 @@ TASK KeyboardMonitor()
     int Index;
 
     //----- READ KEYBOARD EVENTS -----
-    while (1)
+    while (!end_tasks)
     {
         ReadDevice = read(FileDevice, InputEvent, sizeof(struct input_event) * 64);
         //printf("number of events: %d \r\n", ReadDevice / sizeof(struct input_event));
@@ -85,6 +85,7 @@ TASK KeyboardMonitor()
                         if (InputEvent[Index].code == KEY_ESC)
                         {
                             printf("Closing\n");
+                            end_tasks = 1;
                             al_exit();
                             return 0;
                         }

@@ -14,9 +14,9 @@ TASK volumeThread()
     
     // gate(&adsr, true);
 
-    while(1)
+    while(!end_tasks)
     {
 
     }
-
+    free(adsr);
 }

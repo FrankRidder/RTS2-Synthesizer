@@ -7,9 +7,9 @@
 typedef void* TASK;
 
 enum wavesforms{SIN, SQUARE, SAW, TRIANGLE};
-
+int end_tasks = 0;
 unsigned int filter_freq;
-unsigned int volume;
+unsigned int global_volume;
 
 typedef struct mqWaveforms
 {

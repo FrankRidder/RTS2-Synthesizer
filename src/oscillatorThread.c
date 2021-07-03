@@ -4,6 +4,10 @@
 TASK oscillatorThread()
 {
     
+    while (!end_tasks)
+    {
+        
+    }
 }
 
 /*
