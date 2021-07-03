@@ -13,7 +13,7 @@
 #include <assert.h>
 
 /* For testing */
-#include "waveGenerator.h"
+#include "oscillatorThread.h"
 #include "filter.h"
 
 

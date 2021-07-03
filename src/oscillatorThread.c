@@ -1,5 +1,10 @@
-#include "waveGenerator.h"
+#include "oscillatorThread.h"
 #include "shared.h"
+
+TASK oscillatorThread()
+{
+    
+}
 
 /*
  *  Generate sin wave from -32760 to 32760
