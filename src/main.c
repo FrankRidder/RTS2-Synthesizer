@@ -41,21 +41,23 @@ void createThreads()
     struct sched_param param;
     pthread_attr_t tattr;
 
-    pthread_attr_init(&tattr);                      //tattr init met defaultwaarden
-    pthread_attr_setschedpolicy(&tattr, SCHED_RR);  //sched policy aanpassen
+    // pthread_attr_init(&tattr);                      //tattr init met defaultwaarden
+    // pthread_attr_setschedpolicy(&tattr, SCHED_RR);  //sched policy aanpassen
 
-    /* setting the new scheduling param */
-    pthread_attr_setschedparam(&tattr, &param);
+    // /* setting the new scheduling param */
+    // pthread_attr_setschedparam(&tattr, &param);
 
     printf("Creating threads .. \r\n");
 
-    status = pthread_create(&threads[0], &tattr, KeyboardMonitor, NULL);    //Create threads
+    static buffer_t buffer = BUFFER_INITIALIZER;
+
+    status = pthread_create(&threads[0], &tattr, KeyboardMonitor, (void*)&buffer);    //Create threads
     if (status != 0) {
         printf("While creating thread 1, pthread_create returned error code %d\r\n", status);
         exit(-1);
     }
 
-    status = pthread_create(&threads[1], &tattr, oscillatorThread, NULL);    //Create threads
+    status = pthread_create(&threads[1], &tattr, oscillatorThread, (void*)&buffer);    //Create threads
     if (status != 0) {
         printf("While creating thread 1, pthread_create returned error code %d\r\n", status);
         exit(-1);
@@ -88,10 +90,9 @@ int main(int argc, char *argv[])
         return 1;
     }
     
-    
     signal(SIGTSTP, sighandler);    // Disable CTRL+Z
     initialiseTerminal();           // Disable echo
-    al_init();                      // Initialise sound module
+    //al_init();                      // Initialise sound module
     KeyboardSetup((void*)argv[1]);  // Initialise the keyboard
     createThreads();                // Create threads
     
