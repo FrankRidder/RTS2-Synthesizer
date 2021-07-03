@@ -9,23 +9,20 @@
 static int FileDevice;
 static int ReadDevice;
 
-int KeyboardSetup(TASK pathname)
-{  
+int KeyboardSetup(TASK pathname) {
     int version;
     unsigned short id[4];
     unsigned long bit[EV_MAX][NBITS(KEY_MAX)];
 
     //----- OPEN THE INPUT DEVICE -----
-    if ((FileDevice = open((char *) pathname, O_RDONLY)) < 0)		//<<<<SET THE INPUT DEVICE PATH HERE
-    {
+    if ((FileDevice = open((char *) pathname, O_RDONLY)) < 0){       //<<<<SET THE INPUT DEVICE PATH HERE
         perror("KeyboardMonitor can't open input device\r\n");
         close(FileDevice);
         return 0;
     }
 
     //----- GET DEVICE VERSION -----
-    if (ioctl(FileDevice, EVIOCGVERSION, &version))
-    {
+    if (ioctl(FileDevice, EVIOCGVERSION, &version)) {
         perror("KeyboardMonitor can't get version\r\n");
         close(FileDevice);
         return 0;
@@ -42,50 +39,39 @@ int KeyboardSetup(TASK pathname)
     return 1;
 }
 
-TASK KeyboardMonitor() 
-{
+TASK KeyboardMonitor() {
     struct input_event InputEvent[64];
     int Index;
 
     //----- READ KEYBOARD EVENTS -----
-    while (1)
-    {
+    while (1) {
         ReadDevice = read(FileDevice, InputEvent, sizeof(struct input_event) * 64);
         //printf("number of events: %d \r\n", ReadDevice / sizeof(struct input_event));
-        if (ReadDevice < (int) sizeof(struct input_event))
-        {
+        if (ReadDevice < (int) sizeof(struct input_event)) {
             //This should never happen
             printf("haha fail\r\n");
             perror("KeyboardMonitor error reading - keyboard lost?");
             close(FileDevice);
             return 0;
-        }
-        else
-        {
+        } else {
             // Array to keep track of which keys have been pressed, so its associated tone can be stopped
             static int keyTracker[4] = {0, 0, 0, 0};
-            for (Index = 0; Index < ReadDevice / sizeof(struct input_event); Index++)
-            {
+            for (Index = 0; Index < ReadDevice / sizeof(struct input_event); Index++) {
                 //We have:
                 //	InputEvent[Index].time		timeval: 16 bytes (8 bytes for seconds, 8 bytes for microseconds)
                 //	InputEvent[Index].type		See input-event-codes.h
                 //	InputEvent[Index].code		See input-event-codes.h
                 //	InputEvent[Index].value		01 for keypress, 00 for release, 02 for autorepeat
 
-                if (InputEvent[Index].type == EV_KEY)
-                {
-                    if (InputEvent[Index].value == 2)
-                    {
+                if (InputEvent[Index].type == EV_KEY) {
+                    if (InputEvent[Index].value == 2) {
                         //This is an auto repeat of a held down key
                         //cout << (int)(InputEvent[Index].code) << " Auto Repeat";
                         //cout << endl;
-                    }
-                    else if (InputEvent[Index].value == 1)
-                    {
-                        if (InputEvent[Index].code == KEY_ESC)
-                        {
+                    } else if (InputEvent[Index].value == 1) {
+                        if (InputEvent[Index].code == KEY_ESC) {
                             printf("Closing\n");
-                            al_exit();
+                            sound_close();
                             return 0;
                         }
 
@@ -94,17 +80,15 @@ TASK KeyboardMonitor()
                         for (int i = 0; i < 4; i++) {
                             if (keyTracker[i] == 0) {
                                 keyTracker[i] = InputEvent[Index].code;
-                                
+
                                 // Semi random frequency from key code between 0-20KHz
                                 //int frequency = (InputEvent[Index].code * 100) % 20000; 
                                 int frequency = 440;
-                                playInLoop(i, frequency);
+                                playInLoop(frequency);
                                 break;
                             }
                         }
-                    }
-                    else if (InputEvent[Index].value == 0)
-                    {
+                    } else if (InputEvent[Index].value == 0) {
                         //----- KEY UP -----
                         printf("key up\r\n");
                         for (int i = 0; i < 4; i++) {
@@ -118,5 +102,4 @@ TASK KeyboardMonitor()
             }
         }
     }
-
 }

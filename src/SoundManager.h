@@ -2,8 +2,8 @@
 #define SOUND_MANAGER
 
 // Call in setup
-extern void al_init();
-extern void al_exit();
-extern void playInLoop(int source, int frequency);
-extern void stopPlaying(int source);
+int sound_init();
+void sound_close();
+void playInLoop(int frequency);
+void stopPlaying();
 #endif
