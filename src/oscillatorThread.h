@@ -4,6 +4,8 @@
 #include <math.h>
 #include "shared.h"
 
+TASK oscillatorThread();
+
 /*
  *  Generate sin wave from -32760 to 32760
  */

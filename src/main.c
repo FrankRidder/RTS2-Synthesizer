@@ -8,6 +8,7 @@
 //Functions used by threads
 #include "inputThread.h"
 #include "SoundManager.h"
+#include "oscillatorThread.h"
 
 #include "shared.h"
 
@@ -53,6 +54,14 @@ void createThreads()
         printf("While creating thread 1, pthread_create returned error code %d\r\n", status);
         exit(-1);
     }
+
+    status = pthread_create(&threads[1], &tattr, oscillatorThread, NULL);    //Create threads
+    if (status != 0) {
+        printf("While creating thread 1, pthread_create returned error code %d\r\n", status);
+        exit(-1);
+    }
+
+    end_tasks = 0;
 }
 
 void terminate()

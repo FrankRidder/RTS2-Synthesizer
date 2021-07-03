@@ -1,6 +1,7 @@
 #include "volumeThread.h"
 #include "ADSR.h"
 #include "shared.h"
+#include <stdlib.h>    // gives malloc
 
 TASK volumeThread()
 {
@@ -16,7 +17,9 @@ TASK volumeThread()
 
     while(!end_tasks)
     {
-
+        // for(int i = 1; i < buf_size; i++) {
+        //     sample[i] *= global_volume * process(adsr);
+        // }
     }
     free(adsr);
 }

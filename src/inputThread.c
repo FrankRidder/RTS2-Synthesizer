@@ -1,7 +1,11 @@
 #include "inputThread.h"
+#include <mqueue.h>
+#include <time.h>
+#include <string.h>
 
 //test
 #include "SoundManager.h"
+#include <errno.h>
 
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
@@ -47,6 +51,25 @@ TASK KeyboardMonitor()
     struct input_event InputEvent[64];
     int Index;
 
+    struct mq_attr msgq_attr;
+    
+
+    mqWave message;
+    //char message[QUEUE_MSGSIZE];
+
+	mqd_t mq;
+	struct timespec poll_sleep;
+	do {
+		mq = mq_open(QUEUE_NAME, O_WRONLY);
+		if(mq < 0) {
+			printf("[PUBLISHER]: The queue is not created yet. Waiting...\n");
+			
+			poll_sleep = ((struct timespec){5, 0});
+			nanosleep(&poll_sleep, NULL);
+		}
+	} while(mq == -1);
+    printf("[PUBLISHER]: Queue opened, queue descriptor: %d.\n", mq);
+
     //----- READ KEYBOARD EVENTS -----
     while (!end_tasks)
     {
@@ -91,33 +114,29 @@ TASK KeyboardMonitor()
                         }
 
                         //----- KEY DOWN -----
-                        printf("key down\r\n");
-                        for (int i = 0; i < 4; i++) {
-                            if (keyTracker[i] == 0) {
-                                keyTracker[i] = InputEvent[Index].code;
-                                
-                                // Semi random frequency from key code between 0-20KHz
-                                //int frequency = (InputEvent[Index].code * 100) % 20000; 
-                                int frequency = 440;
-                                playInLoop(i, frequency);
-                                break;
-                            }
+                        // printf("key down\r\n");
+                        message.pitch = (int) InputEvent[Index].code;
+                        //snprintf(message, sizeof(message), "MESSAGE NUMBER %d, PRIORITY %d", 1, 0);
+                        int status = mq_send(mq, (const char *)&message, sizeof(message), 0);
+                        if (0 != status)
+                        {
+                            fprintf(stderr, "[PRODUCER]: Error, cannot open the queue: %s.\n", strerror(errno));
+                            //printf("Error sending: %d\n", errno);
                         }
+
+                        printf("Send pitch: %d\n", message.pitch);
+
                     }
                     else if (InputEvent[Index].value == 0)
                     {
                         //----- KEY UP -----
-                        printf("key up\r\n");
-                        for (int i = 0; i < 4; i++) {
-                            if (keyTracker[i] == InputEvent[Index].code) {
-                                keyTracker[i] = 0;
-                                stopPlaying(i);
-                            }
-                        }
+                        // printf("key up\r\n");
+
                     }
                 }
             }
         }
     }
 
+    mq_close(mq);
 }

@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>    // gives malloc
 #include <math.h>
