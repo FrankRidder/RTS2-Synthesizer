@@ -5,7 +5,6 @@
 TASK volumeThread()
 {
     ADSR* adsr = createADSR();
-    initADSR(adsr);
 
     // initialize settings
     setAttackRate(adsr,    .1 * SAMPLE_RATE );  // .1 second
