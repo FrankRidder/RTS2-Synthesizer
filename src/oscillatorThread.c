@@ -17,7 +17,7 @@ TASK oscillatorThread(void* arg)
     while (!end_tasks)
     {
         pthread_mutex_lock(&buffer->input->mutex);
-        if (buffer->input->len == 0) { // empty
+        while (buffer->input->len == 0 && !end_tasks) { // empty
             // wait for new items to be appended to the buffer
             pthread_cond_wait(&buffer->input->can_consume, &buffer->input->mutex);
         }

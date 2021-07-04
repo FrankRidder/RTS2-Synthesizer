@@ -41,11 +41,11 @@ void createThreads()
     struct sched_param param;
     pthread_attr_t tattr;
 
-    // pthread_attr_init(&tattr);                      //tattr init met defaultwaarden
-    // pthread_attr_setschedpolicy(&tattr, SCHED_RR);  //sched policy aanpassen
+    pthread_attr_init(&tattr);                      //tattr init met defaultwaarden
+    pthread_attr_setschedpolicy(&tattr, SCHED_RR);  //sched policy aanpassen
 
-    // /* setting the new scheduling param */
-    // pthread_attr_setschedparam(&tattr, &param);
+    /* setting the new scheduling param */
+    pthread_attr_setschedparam(&tattr, &param);
 
     printf("Creating threads .. \r\n");
 
