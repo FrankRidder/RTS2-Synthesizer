@@ -47,10 +47,9 @@ int KeyboardSetup(TASK pathname)
     return 1;
 }
 
-TASK KeyboardMonitor(void* arg) 
+TASK KeyboardMonitor(void* arg)
 {   
-    arguments_t *buffer = (arguments_t*)arg;
-
+    oscillators_t *oscs = (oscillators_t*)arg;
     struct input_event InputEvent[64];
     int Index;
 
@@ -91,41 +90,42 @@ TASK KeyboardMonitor(void* arg)
                     }
                     else if (InputEvent[Index].value == 1)
                     {
-                        pthread_mutex_lock(&buffer->output->mutex);
+
+                        //playInLoop(0, 440);
                         if (InputEvent[Index].code == KEY_ESC)
                         {
                             printf("Closing\n");
                             end_tasks = 1;
-                            // signal the fact that new items may be consumed
-                            //++buffer->len;
-                            pthread_cond_signal(&buffer->output->can_consume);
-                            pthread_mutex_unlock(&buffer->output->mutex);
                             al_exit();
                             return 0;
                         }
 
                         //----- KEY DOWN -----
-                        if (buffer->output->len == SAMPLES_PER_BUFFER) { // full
-                            // wait until some elements are consumed
-                            int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
-                            printf("Status: %d\n", status);
+                        printf("Key down\n");
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (keyTracker[i] == 0) {
+                                keyTracker[i] = InputEvent[Index].code;
+                                oscs[i].pitch = 440;
+                                oscs[i].turnon = true;
+                                oscs[i].waveform = SIN;
+                            }
                         }
-
-                        int t = (int) InputEvent[Index].code;
-                        printf("Produced: %d\n", t);
-                        // append data to the buffer
-                        buffer->output->buf[buffer->output->len] = (short) t;
-                        ++buffer->output->len;
-
-                        // signal the fact that new items may be consumed
-                        pthread_cond_signal(&buffer->output->can_consume);
-                        pthread_mutex_unlock(&buffer->output->mutex);
                     }
                     else if (InputEvent[Index].value == 0)
                     {
                         //----- KEY UP -----
                         // printf("key up\r\n");
-
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (keyTracker[i] == InputEvent[Index].code) 
+                            {
+                                oscs[i].pitch = 440;
+                                oscs[i].turnon = false;
+                                oscs[i].waveform = SIN;
+                            }
+                        }
+                        // stopPlaying(0);
                     }
                 }
             }

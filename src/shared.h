@@ -2,11 +2,26 @@
 #define SHARED_H
 
 #include <pthread.h>
+#include <stdbool.h>
 
-#define SAMPLES_PER_BUFFER			8
+#define NUM_OSCS 3
+
+#define SAMPLES_PER_BUFFER			1024
 #define SAMPLE_RATE                 44100
 
-#define BUFFER_INITIALIZER ((struct buffer_type){.pitch = 440, .volume = 0.0,.waveform = SIN,.len = 0,.mutex = PTHREAD_MUTEX_INITIALIZER,.can_produce = PTHREAD_COND_INITIALIZER,.can_consume = PTHREAD_COND_INITIALIZER})
+#define BUFFER_INITIALIZER ((struct buffer_type) {  \
+    .len = 0,                                       \
+    .mutex = PTHREAD_MUTEX_INITIALIZER,             \
+    .can_produce = PTHREAD_COND_INITIALIZER,        \
+    .can_consume = PTHREAD_COND_INITIALIZER         \
+})                                                  
+
+#define OSCILLATOR_INITIALIZER ((struct osc_type) {  \
+    .pitch = 0,                                       \
+    .waveform = SIN,                                    \
+    .turnon = false,                                    \
+    .free = true,                                       \
+})   
 
 typedef void* TASK;
 
@@ -15,13 +30,18 @@ int end_tasks;
 unsigned int filter_freq;
 unsigned int global_volume;
 
-typedef struct buffer_type{
-    int buf[SAMPLES_PER_BUFFER]; // the buffer
-    size_t len; // number of items in the buffer
-
+typedef struct osc_type {
     unsigned int pitch;
-    float volume;
     enum wavesforms waveform; 
+    bool turnon;
+    bool free;
+} oscillators_t;
+
+oscillators_t oscillators[NUM_OSCS];
+
+typedef struct buffer_type{
+    short buf[SAMPLES_PER_BUFFER]; // the buffer
+    size_t len; // number of items in the buffer
 
     pthread_mutex_t mutex; // needed to add/remove data from the buffer
     pthread_cond_t can_produce; // signaled when items are removed
@@ -31,6 +51,7 @@ typedef struct buffer_type{
 typedef struct {
     buffer_t *input;
     buffer_t *output;
+    oscillators_t *osc;
 } arguments_t; 
 
 

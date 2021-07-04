@@ -10,6 +10,6 @@
 #include "shared.h"
 
 int KeyboardSetup(TASK pathname);
-TASK KeyboardMonitor ();
+TASK KeyboardMonitor(void* arg);
 
 #endif

@@ -9,10 +9,12 @@
 #include "inputThread.h"
 #include "SoundManager.h"
 #include "oscillatorThread.h"
+#include "filterThread.h"
+#include "volumeThread.h"
 
 #include "shared.h"
 
-#define NTHREADS 4
+#define NTHREADS 10
 
 // pthread variables
 static pthread_t threads[NTHREADS];
@@ -26,6 +28,11 @@ void sighandler(int sig_num)
     // Reset handler to catch SIGTSTP next time
     signal(SIGTSTP, sighandler);
     printf("Cannot execute Ctrl+Z, use ESC instead\n");
+    
+    for (int i = 0; i < NTHREADS; i++)
+    {
+        pthread_cancel(threads[i]);
+    }
 }
 
 void initialiseTerminal()
@@ -38,6 +45,9 @@ void initialiseTerminal()
 void createThreads()
 {
     int status = 0;
+    end_tasks = 0;
+    filter_freq = 2000;
+    global_volume = 1.0;
     struct sched_param param;
     pthread_attr_t tattr;
 
@@ -50,22 +60,45 @@ void createThreads()
     printf("Creating threads .. \r\n");
 
     //static buffer_t buffer_from_keyboard_to_osc = BUFFER_INITIALIZER;
-    static buffer_t buf_keyboard_to_osc1 = BUFFER_INITIALIZER;
+    static buffer_t buf_osc_to_filter1 = BUFFER_INITIALIZER;
+    static buffer_t buf_filter_to_volume1 = BUFFER_INITIALIZER;
+    static buffer_t buf_volume_to_audio1 = BUFFER_INITIALIZER;
 
-    static arguments_t arg_keyboard1 = {
+    for (int i = 0; i < NUM_OSCS; i++)
+    {
+        oscillators[i] = OSCILLATOR_INITIALIZER;
+    }
+    static arguments_t arg_oscillator1 = {
         .input = NULL,
-        .output = &buf_keyboard_to_osc1
+        .output = &buf_osc_to_filter1,
+        .osc = &oscillators[0]
     };
 
-    static arguments_t arg_oscillator1 = {
-        .input = &buf_keyboard_to_osc1,
-        .output = NULL
+    static arguments_t arg_filter1 = {
+        .input = &buf_osc_to_filter1,
+        .output = &buf_filter_to_volume1,
+        .osc = &oscillators[0]
+    };
+
+    static arguments_t arg_volume1 = {
+        .input = &buf_filter_to_volume1,
+        .output = &buf_volume_to_audio1,
+        .osc = &oscillators[0]
+    };
+
+    static arguments_t arg_arg_audio1 = {
+        .input = &buf_volume_to_audio1,
+        .output = NULL,
+        .osc = &oscillators[0]
     };
 
     // Create threads
-    pthread_create(&threads[0], &tattr, KeyboardMonitor,  (void*)&arg_keyboard1);    
-    pthread_create(&threads[1], &tattr, oscillatorThread, (void*)&arg_oscillator1);    
-    end_tasks = 0;
+    pthread_create(&threads[0], &tattr, KeyboardMonitor,  (void*)oscillators);    
+    pthread_create(&threads[1], &tattr, oscillatorThread, (void*)&arg_oscillator1);
+    pthread_create(&threads[2], &tattr, filterThread,   (void*)&arg_filter1);
+    pthread_create(&threads[3], &tattr, volumeThread, (void*)&arg_volume1);
+    pthread_create(&threads[4], &tattr, audioThread, (void*)&arg_arg_audio1);
+    
 }
 
 void terminate()
@@ -94,7 +127,7 @@ int main(int argc, char *argv[])
     
     signal(SIGTSTP, sighandler);    // Disable CTRL+Z
     initialiseTerminal();           // Disable echo
-    //al_init();                      // Initialise sound module
+    al_init();                      // Initialise sound module
     KeyboardSetup((void*)argv[1]);  // Initialise the keyboard
     createThreads();                // Create threads
     

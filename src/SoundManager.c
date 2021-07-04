@@ -20,8 +20,8 @@
 ALCdevice  * openal_output_device;
 ALCcontext * openal_output_context;
 
-ALuint internal_buffer[NBUFFERS];
-ALuint streaming_source[NBUFFERS];
+static ALuint internal_buffer[NBUFFERS];
+static ALuint streaming_source[NBUFFERS];
 
 
 
@@ -49,7 +49,8 @@ void al_init() {
     alGenSources(NBUFFERS, streaming_source);
     al_check_error("alGenSources");
 
-    
+    alGenBuffers(NBUFFERS, internal_buffer);
+    al_check_error("alGenBuffers");
 }
 
 void al_exit() { 
@@ -74,9 +75,8 @@ void al_exit() {
     errorCode = alGetError();
     alcDestroyContext(openal_output_context);
     alcCloseDevice(openal_output_device);
-
-    
 }
+
 
 float filter(float cutofFreq){
     float RC = 1.0/(cutofFreq * 2 * M_PI);
@@ -95,9 +95,70 @@ void band_pass_example()
     }
 
     free_bw_band_pass(filter);
-
 }
 
+TASK audioThread(void* arg)
+{
+    arguments_t *buffer = (arguments_t*)arg;
+        
+    
+
+    while (!end_tasks)
+    {
+        short * samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
+
+        ALint availBuffers=0;
+        alGetSourcei(streaming_source[0],AL_BUFFERS_PROCESSED,&availBuffers);
+        while (availBuffers > 1 || !end_tasks)
+        {
+            usleep(100);
+            alGetSourcei(streaming_source[0],AL_BUFFERS_PROCESSED,&availBuffers);
+        }
+        al_check_error("alGetQueuStatus");
+        
+        /*
+         * ================ Consume ====================
+         */
+        pthread_mutex_lock(&buffer->input->mutex);
+        while (buffer->input->len == 0 && !end_tasks) { // empty
+            // wait for new items to be appended to the buffer
+            pthread_cond_wait(&buffer->input->can_consume, &buffer->input->mutex);
+        }
+        --buffer->input->len;
+        for(int i = 0; i < SAMPLES_PER_BUFFER; i++) {
+           samples[i] = buffer->input->buf[i];
+        }
+
+        // signal the fact that new items may be produced
+        pthread_cond_signal(&buffer->input->can_produce);
+        pthread_mutex_unlock(&buffer->input->mutex);
+
+        /*
+         * ================ Process ====================
+         */
+
+        alBufferData( internal_buffer[0], AL_FORMAT_MONO16, buffer->input->buf, SAMPLES_PER_BUFFER, SAMPLE_RATE);
+        al_check_error("alBufferData");
+
+        // Queue the buffer
+        alSourceQueueBuffers(streaming_source[0], 1, &internal_buffer[0]);
+        al_check_error("alQueueData");
+
+        // Restart the source if needed
+        // (if we take too long and the queue dries up,
+        //  the source stops playing).
+        ALint sState = 0;
+        alGetSourcei(streaming_source[0], AL_SOURCE_STATE, &sState);
+        if (sState != AL_PLAYING) 
+        {
+            alSourcePlay(streaming_source[0]);
+        }        
+
+        printf("audio thread ran\n");
+        free(samples);
+    }
+    
+}
 
 void playInLoop(int source, int frequency)
 {
@@ -106,7 +167,7 @@ void playInLoop(int source, int frequency)
     //alGenSources(1, &streaming_source[source]);
     unsigned sample_rate = 44100;
     double my_pi = 3.14159;
-    size_t buf_size = 10 * sample_rate;
+    size_t buf_size = 1 * sample_rate;
 
     // allocate PCM audio buffer        
     short * samples = malloc(sizeof(short) * buf_size);
@@ -130,20 +191,30 @@ void playInLoop(int source, int frequency)
         }
     */
 
-    alGenBuffers(1, &internal_buffer[source]);
-    al_check_error("alGenBuffers");
-
     alBufferData( internal_buffer[source], AL_FORMAT_MONO16, filtered_samples, buf_size, sample_rate);
     al_check_error("alBufferData");
-    
+
+
+    // Queue the buffer
+    alSourceQueueBuffers(streaming_source[source],1,&internal_buffer[source]);
+
     free(samples);
     free(filtered_samples);
 
-    // Turn on looping and attach buffer
-    alSourcei(streaming_source[source], AL_LOOPING, 1);
-    alSourcei(streaming_source[source], AL_BUFFER, internal_buffer[source]);
+    // Restart the source if needed
+    // (if we take too long and the queue dries up,
+    //  the source stops playing).
+    ALint sState=0;
+    alGetSourcei(streaming_source[source],AL_SOURCE_STATE,&sState);
+    if (sState!=AL_PLAYING) {
+        alSourcePlay(streaming_source[source]);
+    }
 
-    alSourcePlay(streaming_source[source]);
+    // // Turn on looping and attach buffer
+    // alSourcei(streaming_source[source], AL_LOOPING, 1);
+    // alSourcei(streaming_source[source], AL_BUFFER, internal_buffer[source]);
+
+    // alSourcePlay(streaming_source[source]);
 }
 
 void stopPlaying(int source)
@@ -158,10 +229,6 @@ void stopPlaying(int source)
     alSourcei(streaming_source[source], AL_LOOPING, 0);
     alSourcei(streaming_source[source], AL_BUFFER, 0), 
     al_check_error("alSourcei");
-
-    // Delete buffer
-    alDeleteBuffers(1, &internal_buffer[source]);
-    al_check_error("alDeleteBuffers");
 
     //printf("Deleting sources from %d\r\n", source);
 }
