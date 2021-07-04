@@ -49,7 +49,7 @@ int KeyboardSetup(TASK pathname)
 
 TASK KeyboardMonitor(void* arg) 
 {   
-    buffer_t *buffer = (buffer_t*)arg;
+    arguments_t *buffer = (arguments_t*)arg;
 
     struct input_event InputEvent[64];
     int Index;
@@ -91,35 +91,35 @@ TASK KeyboardMonitor(void* arg)
                     }
                     else if (InputEvent[Index].value == 1)
                     {
-                        pthread_mutex_lock(&buffer->mutex);
+                        pthread_mutex_lock(&buffer->output->mutex);
                         if (InputEvent[Index].code == KEY_ESC)
                         {
                             printf("Closing\n");
                             end_tasks = 1;
                             // signal the fact that new items may be consumed
                             //++buffer->len;
-                            pthread_cond_signal(&buffer->can_consume);
-                            pthread_mutex_unlock(&buffer->mutex);
+                            pthread_cond_signal(&buffer->output->can_consume);
+                            pthread_mutex_unlock(&buffer->output->mutex);
                             al_exit();
                             return 0;
                         }
 
                         //----- KEY DOWN -----
-                        if (buffer->len == SAMPLES_PER_BUFFER) { // full
+                        if (buffer->output->len == SAMPLES_PER_BUFFER) { // full
                             // wait until some elements are consumed
-                            int status = pthread_cond_wait(&buffer->can_produce, &buffer->mutex);
+                            int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
                             printf("Status: %d\n", status);
                         }
 
                         int t = (int) InputEvent[Index].code;
                         printf("Produced: %d\n", t);
                         // append data to the buffer
-                        buffer->buf[buffer->len] = (short) t;
-                        ++buffer->len;
+                        buffer->output->buf[buffer->output->len] = (short) t;
+                        ++buffer->output->len;
 
                         // signal the fact that new items may be consumed
-                        pthread_cond_signal(&buffer->can_consume);
-                        pthread_mutex_unlock(&buffer->mutex);
+                        pthread_cond_signal(&buffer->output->can_consume);
+                        pthread_mutex_unlock(&buffer->output->mutex);
                     }
                     else if (InputEvent[Index].value == 0)
                     {

@@ -11,21 +11,22 @@
 
 TASK oscillatorThread(void* arg)
 {
-    buffer_t *buffer = (buffer_t*)arg;
+    arguments_t *buffer = (arguments_t*)arg;
+
 
     while (!end_tasks)
     {
-        pthread_mutex_lock(&buffer->mutex);
-        if (buffer->len == 0) { // empty
+        pthread_mutex_lock(&buffer->input->mutex);
+        if (buffer->input->len == 0) { // empty
             // wait for new items to be appended to the buffer
-            pthread_cond_wait(&buffer->can_consume, &buffer->mutex);
+            pthread_cond_wait(&buffer->input->can_consume, &buffer->input->mutex);
         }
-        --buffer->len;
-        printf("Consumed: %d length: %ld\n", buffer->buf[buffer->len], buffer->len);
+        --buffer->input->len;
+        printf("Consumed: %d length: %ld\n", buffer->input->buf[buffer->input->len], buffer->input->len);
 
         // signal the fact that new items may be produced
-        pthread_cond_signal(&buffer->can_produce);
-        pthread_mutex_unlock(&buffer->mutex);
+        pthread_cond_signal(&buffer->input->can_produce);
+        pthread_mutex_unlock(&buffer->input->mutex);
     }    
 }
 

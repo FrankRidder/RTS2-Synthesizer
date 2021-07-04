@@ -49,20 +49,22 @@ void createThreads()
 
     printf("Creating threads .. \r\n");
 
-    static buffer_t buffer = BUFFER_INITIALIZER;
+    //static buffer_t buffer_from_keyboard_to_osc = BUFFER_INITIALIZER;
+    static buffer_t buf_keyboard_to_osc1 = BUFFER_INITIALIZER;
 
-    status = pthread_create(&threads[0], &tattr, KeyboardMonitor, (void*)&buffer);    //Create threads
-    if (status != 0) {
-        printf("While creating thread 1, pthread_create returned error code %d\r\n", status);
-        exit(-1);
-    }
+    static arguments_t arg_keyboard1 = {
+        .input = NULL,
+        .output = &buf_keyboard_to_osc1
+    };
 
-    status = pthread_create(&threads[1], &tattr, oscillatorThread, (void*)&buffer);    //Create threads
-    if (status != 0) {
-        printf("While creating thread 1, pthread_create returned error code %d\r\n", status);
-        exit(-1);
-    }
+    static arguments_t arg_oscillator1 = {
+        .input = &buf_keyboard_to_osc1,
+        .output = NULL
+    };
 
+    // Create threads
+    pthread_create(&threads[0], &tattr, KeyboardMonitor,  (void*)&arg_keyboard1);    
+    pthread_create(&threads[1], &tattr, oscillatorThread, (void*)&arg_oscillator1);    
     end_tasks = 0;
 }
 
