@@ -19,6 +19,7 @@
 
 #include "ADSR.h"
 #include <math.h>
+#include <stdlib.h>
 
  
 
