@@ -100,21 +100,20 @@ void band_pass_example()
 TASK audioThread(void* arg)
 {
     arguments_t *buffer = (arguments_t*)arg;
-        
-    
+    static short * samples;
+    samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
+
+    alBufferData( internal_buffer[0], AL_FORMAT_MONO16, buffer->input->buf, SAMPLES_PER_BUFFER, SAMPLE_RATE);
+    al_check_error("alBufferData");
+
+    // Queue the buffer
+    alSourceQueueBuffers(streaming_source[0], 1, &internal_buffer[0]);
+    al_check_error("alQueueData");
 
     while (!end_tasks)
     {
-        short * samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
+        
 
-        ALint availBuffers=0;
-        alGetSourcei(streaming_source[0],AL_BUFFERS_PROCESSED,&availBuffers);
-        while (availBuffers > 1 || !end_tasks)
-        {
-            usleep(100);
-            alGetSourcei(streaming_source[0],AL_BUFFERS_PROCESSED,&availBuffers);
-        }
-        al_check_error("alGetQueuStatus");
         
         /*
          * ================ Consume ====================
@@ -129,6 +128,38 @@ TASK audioThread(void* arg)
            samples[i] = buffer->input->buf[i];
         }
 
+        ALint availBuffers=0;
+        ALint uiBuffer;
+        alGetSourcei(streaming_source[0],AL_BUFFERS_PROCESSED,&availBuffers);
+        while (availBuffers >= 1 && !end_tasks)
+        {
+            // Remove the buffer from the queue (uiBuffer contains the buffer ID for the dequeued buffer)
+            uiBuffer = 0;
+            alSourceUnqueueBuffers(streaming_source[0], 1, &internal_buffer[0]);
+            printf("Buffers left: %d\n", availBuffers);
+            alBufferData( internal_buffer[0], AL_FORMAT_MONO16, buffer->input->buf, SAMPLES_PER_BUFFER, SAMPLE_RATE);
+            al_check_error("alBufferData");
+
+            // Queue the buffer
+            alSourceQueueBuffers(streaming_source[0], 1, &internal_buffer[0]);
+            al_check_error("alQueueData");
+
+            availBuffers--;
+            usleep(10 * 1000);
+        }
+        al_check_error("alGetQueuStatus");
+
+        
+
+
+        ALint sState = 0;
+        alGetSourcei(streaming_source[0], AL_SOURCE_STATE, &sState);
+        if (sState != AL_PLAYING) 
+        {
+            alSourcePlay(streaming_source[0]);
+        }        
+
+
         // signal the fact that new items may be produced
         pthread_cond_signal(&buffer->input->can_produce);
         pthread_mutex_unlock(&buffer->input->mutex);
@@ -137,27 +168,16 @@ TASK audioThread(void* arg)
          * ================ Process ====================
          */
 
-        alBufferData( internal_buffer[0], AL_FORMAT_MONO16, buffer->input->buf, SAMPLES_PER_BUFFER, SAMPLE_RATE);
-        al_check_error("alBufferData");
-
-        // Queue the buffer
-        alSourceQueueBuffers(streaming_source[0], 1, &internal_buffer[0]);
-        al_check_error("alQueueData");
-
         // Restart the source if needed
         // (if we take too long and the queue dries up,
         //  the source stops playing).
-        ALint sState = 0;
-        alGetSourcei(streaming_source[0], AL_SOURCE_STATE, &sState);
-        if (sState != AL_PLAYING) 
-        {
-            alSourcePlay(streaming_source[0]);
-        }        
+
 
         printf("audio thread ran\n");
-        free(samples);
+        
+        usleep(100);
     }
-    
+    free(samples);
 }
 
 void playInLoop(int source, int frequency)

@@ -109,6 +109,7 @@ TASK KeyboardMonitor(void* arg)
                                 oscs[i].pitch = 440;
                                 oscs[i].turnon = true;
                                 oscs[i].waveform = SIN;
+                                break;
                             }
                         }
                     }
@@ -120,9 +121,11 @@ TASK KeyboardMonitor(void* arg)
                         {
                             if (keyTracker[i] == InputEvent[Index].code) 
                             {
+                                keyTracker[i] = 0;
                                 oscs[i].pitch = 440;
                                 oscs[i].turnon = false;
                                 oscs[i].waveform = SIN;
+                                break;
                             }
                         }
                         // stopPlaying(0);
