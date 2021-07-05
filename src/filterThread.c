@@ -28,8 +28,7 @@ TASK filterThread(void* arg)
 
         /*
          * ================ Process ====================
-         */
-
+         */        
 
         // Recreating filter because there is no option to change frequency (yet)
         BWLowPass* filter_bw = create_bw_low_pass_filter(4, SAMPLE_RATE, filter_freq);
@@ -38,6 +37,7 @@ TASK filterThread(void* arg)
         }
         free_bw_low_pass(filter_bw);
 
+
         /*
          * ================ Produce ====================
          */
@@ -45,7 +45,7 @@ TASK filterThread(void* arg)
         if (buffer->output->len == 1) { // full
             // wait until some elements are consumed
             int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
-            printf("Status filter: %d\n", status);
+            //printf("Status filter: %d\n", status);
         }
         for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
         {
@@ -56,7 +56,7 @@ TASK filterThread(void* arg)
         // signal the fact that new items may be consumed
         pthread_cond_signal(&buffer->output->can_consume);
         pthread_mutex_unlock(&buffer->output->mutex);
-        printf("filter thread ran\n");
+        //printf("filter thread ran\n");
 
 
 

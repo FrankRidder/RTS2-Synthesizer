@@ -102,13 +102,13 @@ TASK KeyboardMonitor(void* arg)
 
                         //----- KEY DOWN -----
                         printf("Key down\n");
-                        for (int i = 0; i < 4; i++)
+                        for (int i = 0; i < 3; i++)
                         {
                             if (keyTracker[i] == 0) {
                                 keyTracker[i] = InputEvent[Index].code;
                                 oscs[i].pitch = 440;
                                 oscs[i].turnon = true;
-                                oscs[i].waveform = SIN;
+                                oscs[i].waveform = SAW;
                                 break;
                             }
                         }
@@ -116,15 +116,15 @@ TASK KeyboardMonitor(void* arg)
                     else if (InputEvent[Index].value == 0)
                     {
                         //----- KEY UP -----
-                        // printf("key up\r\n");
-                        for (int i = 0; i < 4; i++)
+                        printf("key up\r\n");
+                        for (int i = 0; i < 3; i++)
                         {
                             if (keyTracker[i] == InputEvent[Index].code) 
                             {
                                 keyTracker[i] = 0;
                                 oscs[i].pitch = 440;
                                 oscs[i].turnon = false;
-                                oscs[i].waveform = SIN;
+                                oscs[i].waveform = SAW;
                                 break;
                             }
                         }

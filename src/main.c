@@ -64,12 +64,14 @@ void createThreads()
     static buffer_t buf_filter_to_volume1 = BUFFER_INITIALIZER;
     static buffer_t buf_volume_to_audio1 = BUFFER_INITIALIZER;
 
+    static buffer_t buf_audio_to_osc1 = BUFFER_INITIALIZER;
+
     for (int i = 0; i < NUM_OSCS; i++)
     {
         oscillators[i] = OSCILLATOR_INITIALIZER;
     }
     static arguments_t arg_oscillator1 = {
-        .input = NULL,
+        .input = &buf_audio_to_osc1,
         .output = &buf_osc_to_filter1,
         .osc = &oscillators[0]
     };
@@ -88,7 +90,7 @@ void createThreads()
 
     static arguments_t arg_arg_audio1 = {
         .input = &buf_volume_to_audio1,
-        .output = NULL,
+        .output = &buf_audio_to_osc1,
         .osc = &oscillators[0]
     };
 

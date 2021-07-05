@@ -28,7 +28,7 @@ typedef void* TASK;
 enum wavesforms{SIN, SQUARE, SAW, TRIANGLE};
 int end_tasks;
 unsigned int filter_freq;
-unsigned int global_volume;
+float global_volume;
 
 typedef struct osc_type {
     unsigned int pitch;
@@ -54,6 +54,6 @@ typedef struct {
     oscillators_t *osc;
 } arguments_t; 
 
-
+struct timespec start, finish;
 
 #endif

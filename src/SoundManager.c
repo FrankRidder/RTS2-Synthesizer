@@ -55,8 +55,6 @@ void al_init() {
 
 void al_exit() { 
     // This function is not used (yet)
-
-
     ALenum errorCode = 0;
 
     // Stop the sources
@@ -103,18 +101,18 @@ TASK audioThread(void* arg)
     static short * samples;
     samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
 
-    alBufferData( internal_buffer[0], AL_FORMAT_MONO16, buffer->input->buf, SAMPLES_PER_BUFFER, SAMPLE_RATE);
-    al_check_error("alBufferData");
+    for (int i = 0; i < 4; i++)
+    {
+        alBufferData( internal_buffer[i], AL_FORMAT_MONO16, buffer->input->buf, SAMPLES_PER_BUFFER, SAMPLE_RATE);
+        al_check_error("alBufferData");
 
-    // Queue the buffer
-    alSourceQueueBuffers(streaming_source[0], 1, &internal_buffer[0]);
-    al_check_error("alQueueData");
+        // Queue the buffer
+        alSourceQueueBuffers(streaming_source[0], 1, &internal_buffer[i]);
+        al_check_error("alQueueData");
+    }
 
     while (!end_tasks)
     {
-        
-
-        
         /*
          * ================ Consume ====================
          */
@@ -129,28 +127,26 @@ TASK audioThread(void* arg)
         }
 
         ALint availBuffers=0;
-        ALint uiBuffer;
+        ALuint  uiBuffer;
         alGetSourcei(streaming_source[0],AL_BUFFERS_PROCESSED,&availBuffers);
-        while (availBuffers >= 1 && !end_tasks)
+        int i = 0;
+        if (availBuffers >= 1 && !end_tasks)
         {
             // Remove the buffer from the queue (uiBuffer contains the buffer ID for the dequeued buffer)
             uiBuffer = 0;
-            alSourceUnqueueBuffers(streaming_source[0], 1, &internal_buffer[0]);
-            printf("Buffers left: %d\n", availBuffers);
-            alBufferData( internal_buffer[0], AL_FORMAT_MONO16, buffer->input->buf, SAMPLES_PER_BUFFER, SAMPLE_RATE);
+            alSourceUnqueueBuffers(streaming_source[0], 1, &uiBuffer);
+            //printf("Buffers left: %d\n", availBuffers);
+            alBufferData( uiBuffer, AL_FORMAT_MONO16, buffer->input->buf, SAMPLES_PER_BUFFER, SAMPLE_RATE);
             al_check_error("alBufferData");
 
             // Queue the buffer
-            alSourceQueueBuffers(streaming_source[0], 1, &internal_buffer[0]);
+            alSourceQueueBuffers(streaming_source[0], 1, &uiBuffer);
             al_check_error("alQueueData");
 
             availBuffers--;
-            usleep(10 * 1000);
+            //usleep(10 * 1000);
         }
         al_check_error("alGetQueuStatus");
-
-        
-
 
         ALint sState = 0;
         alGetSourcei(streaming_source[0], AL_SOURCE_STATE, &sState);
@@ -164,16 +160,34 @@ TASK audioThread(void* arg)
         pthread_cond_signal(&buffer->input->can_produce);
         pthread_mutex_unlock(&buffer->input->mutex);
 
+
+
+
         /*
-         * ================ Process ====================
+         * ================ Produce ====================
          */
+        pthread_mutex_lock(&buffer->output->mutex);
+        if (buffer->output->len == 1) { // full
+            // wait until some elements are consumed
+            int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
+            //printf("Status volume: %d\n", status);
+        }
+        buffer->output->len = 1;
+        // signal the fact that new items may be consumed
+        pthread_cond_signal(&buffer->output->can_consume);
+        pthread_mutex_unlock(&buffer->output->mutex);
 
-        // Restart the source if needed
-        // (if we take too long and the queue dries up,
-        //  the source stops playing).
+        // static int prot = 0;
+        // if (prot == 0) {
+        //     clock_gettime(CLOCK_MONOTONIC, &finish);
+        //     double elapsed;
+        //     elapsed = (finish.tv_sec - start.tv_sec);
+        //     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+        //     prot++;
+        //     printf("elapsed: %lf\n", elapsed);
+        // }    
 
-
-        printf("audio thread ran\n");
+        //printf("audio thread ran\n");
         
         usleep(100);
     }

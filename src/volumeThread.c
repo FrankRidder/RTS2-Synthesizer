@@ -59,7 +59,7 @@ TASK volumeThread(void* arg)
         if (buffer->output->len == 1) { // full
             // wait until some elements are consumed
             int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
-            printf("Status volume: %d\n", status);
+            //printf("Status volume: %d\n", status);
         }
         for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
         {
@@ -70,7 +70,7 @@ TASK volumeThread(void* arg)
         // signal the fact that new items may be consumed
         pthread_cond_signal(&buffer->output->can_consume);
         pthread_mutex_unlock(&buffer->output->mutex);
-        printf("volume thread ran\n");
+        //printf("volume thread ran\n");
 
 
 
