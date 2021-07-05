@@ -51,8 +51,8 @@ void createThreads()
     struct sched_param param;
     pthread_attr_t tattr;
 
-    pthread_attr_init(&tattr);                     //tattr init met defaultwaarden
-    pthread_attr_setschedpolicy(&tattr, SCHED_RR); //sched policy aanpassen
+    pthread_attr_init(&tattr);                      //tattr init met defaultwaarden
+    pthread_attr_setschedpolicy(&tattr, SCHED_RR);  //sched policy aanpassen
 
     /* setting the new scheduling param */
     pthread_attr_setschedparam(&tattr, &param);
@@ -71,29 +71,34 @@ void createThreads()
     static arguments_t arg_oscillator1 = {
         .input = NULL,
         .output = &buf_osc_to_filter1,
-        .osc = &oscillators[0]};
+        .osc = &oscillators[0]
+    };
 
     static arguments_t arg_filter1 = {
         .input = &buf_osc_to_filter1,
         .output = &buf_filter_to_volume1,
-        .osc = &oscillators[0]};
+        .osc = &oscillators[0]
+    };
 
     static arguments_t arg_volume1 = {
         .input = &buf_filter_to_volume1,
         .output = &buf_volume_to_audio1,
-        .osc = &oscillators[0]};
+        .osc = &oscillators[0]
+    };
 
     static arguments_t arg_arg_audio1 = {
         .input = &buf_volume_to_audio1,
         .output = NULL,
-        .osc = &oscillators[0]};
+        .osc = &oscillators[0]
+    };
 
     // Create threads
-    pthread_create(&threads[0], &tattr, KeyboardMonitor, (void *)oscillators);
-    pthread_create(&threads[1], &tattr, oscillatorThread, (void *)&arg_oscillator1);
-    pthread_create(&threads[2], &tattr, filterThread, (void *)&arg_filter1);
-    pthread_create(&threads[3], &tattr, volumeThread, (void *)&arg_volume1);
-    pthread_create(&threads[4], &tattr, audioThread, (void *)&arg_arg_audio1);
+    pthread_create(&threads[0], &tattr, KeyboardMonitor,  (void*)oscillators);
+    pthread_create(&threads[1], &tattr, oscillatorThread, (void*)&arg_oscillator1);
+    pthread_create(&threads[2], &tattr, filterThread,   (void*)&arg_filter1);
+    pthread_create(&threads[3], &tattr, volumeThread, (void*)&arg_volume1);
+    pthread_create(&threads[4], &tattr, audioThread, (void*)&arg_arg_audio1);
+
 }
 
 void terminate()
@@ -109,75 +114,50 @@ void terminate()
     tcdrain(stdin_copy);
     tcflush(stdin_copy, TCIFLUSH);
     close(stdin_copy);
-    term.c_lflag |= ECHO; /* turn on ECHO */
+    term.c_lflag |= ECHO;  /* turn on ECHO */
     tcsetattr(fileno(stdin), 0, &term);
+}
+
+void testOsciilatorWCET(int times)
+{
+    struct timespec start, finish;
+    double elapsed;
+    short samples[SAMPLES_PER_BUFFER];
+    int pitch = 0;
+    int waveform = 0;
+    for (int i = 0; i < times; i++)
+    {
+        pitch = rand() % 1000;
+        waveform = rand() % 3;
+
+        short randArray[1024];
+        for (int j = 0; j < 1024; j++)
+            samples[j] = ((-32767) + (rand() % ((32767) - (-32767) + 1)));
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+
+        if (pitch == 0)
+            for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
+                samples[i] = 0;
+        else if (waveform == SQUARE)
+            generateSquare(pitch, samples, SAMPLES_PER_BUFFER);
+        else if (waveform == SIN)
+            generateSin(pitch, samples, SAMPLES_PER_BUFFER);
+        else if (waveform == SAW)
+            generateSaw(pitch, samples, SAMPLES_PER_BUFFER);
+
+        for (int k = 0; k < SAMPLES_PER_BUFFER; k++)
+        {
+            randArray[k] = samples[k];
+        }
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        elapsed = (finish.tv_sec - start.tv_sec);
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+        printf("%f \n", elapsed);
+    }
 }
 
 int main(int argc, char *argv[])
 {
-    struct timespec start, finish;
-    double elapsed;
-    for (int i = 0; i <= 500; i++)
-    {
-        clock_gettime(CLOCK_MONOTONIC, &start);
-
-        // arguments_t *buffer = (arguments_t *)1;
-        pthread_mutex_lock(&buffer->output->mutex);
-        if (buffer->output->len == 1)
-        { // full
-            // wait until some elements are consumed
-            int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
-            printf("Status osc: %d\n", status);
-        }
-        if (buffer->osc->pitch == 0)
-            for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
-                buffer->output->buf[i] = 0;
-        else if (buffer->osc->waveform == SQUARE)
-            generateSquare(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
-        else if (buffer->osc->waveform == SIN)
-            generateSin(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
-        else if (buffer->osc->waveform == SAW)
-            generateSaw(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
-
-        buffer->output->len = 1;
-
-        // signal the fact that new items may be consumed
-        pthread_cond_signal(&buffer->output->can_consume);
-        pthread_mutex_unlock(&buffer->output->mutex);
-        printf("osc thread ran %d\n", buffer->osc->pitch);
-
-        // pthread_mutex_lock(&buffer->input->mutex);
-        // while (buffer->input->len == 0 && !end_tasks) { // empty
-        //     // wait for new items to be appended to the buffer
-        //     pthread_cond_wait(&buffer->input->can_consume, &buffer->input->mutex);
-        // }
-        // --buffer->input->len;
-        // int tid = pthread_self();
-        // printf("Consumed [%d]: %d length: %ld\n", tid, buffer->input->buf[buffer->input->len], buffer->input->len);
-
-        // // signal the fact that new items may be produced
-        // pthread_cond_signal(&buffer->input->can_produce);
-        // pthread_mutex_unlock(&buffer->input->mutex);
-
-        clock_gettime(CLOCK_MONOTONIC, &finish);
-
-        elapsed = (finish.tv_sec - start.tv_sec);
-        printf("%d", elapsed);
-        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-        printf("%d", elapsed);
-    }
-
-    // if (2 != argc) {
-    //     printf("Usage: %s <input device path>\n", argv[0]);
-    //     return 1;
-    // }
-
-    // signal(SIGTSTP, sighandler);    // Disable CTRL+Z
-    // initialiseTerminal();           // Disable echo
-    // al_init();                      // Initialise sound module
-    // KeyboardSetup((void*)argv[1]);  // Initialise the keyboard
-    // createThreads();                // Create threads
-
-    // terminate();                    // Wait for threads to end and terminate program
-    // return 0;
+    testOsciilatorWCET(1000);
 }
