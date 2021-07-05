@@ -33,13 +33,17 @@ TASK oscillatorThread(void* arg)
 /*
  *  Generate sin wave from -32760 to 32760
  */
-void generateSin(int freq, short *samples, int buf_size) 
+void generateSin(int freq, short *samples, int frame_count) 
 {
-    for (int i = 0; i < buf_size; ++i) {
-        samples[i] = 32760 * sin( (2.f * M_PI * freq) / (float)SAMPLE_RATE * i );
+    static float seconds_offset = 0.0f;
+    float pitch = (float)freq;
+    float radians_per_second = pitch * 2.0f * M_PI;
+    float seconds_per_frame = 1.0f / (float)SAMPLE_RATE;
+    for (int frame = 0; frame < frame_count; frame += 1) {
+        samples[frame] = 32760 * sin((seconds_offset + frame * seconds_per_frame) * radians_per_second);
     }
+    seconds_offset = fmod(seconds_offset + seconds_per_frame * frame_count, 1.0);
 }
-
 /*
  *  Generate saw wave from -32760 to 32760
  */
