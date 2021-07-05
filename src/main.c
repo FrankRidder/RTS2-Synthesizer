@@ -120,17 +120,67 @@ void terminate()
 
 int main(int argc, char *argv[])
 {
-    if (2 != argc) {
-        printf("Usage: %s <input device path>\n", argv[0]);
-        return 1;
+
+    for (int i = 0; i <= 500; i++)
+    {
+        samples = random_arra()
+            t_now = clock();
+        for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
+        {
+            samples[i] = buffer->input->buf[i];
+        }
+
+        {
+            pthread_mutex_lock(&buffer->output->mutex);
+            if (buffer->output->len == 1)
+            { // full
+                // wait until some elements are consumed
+                int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
+                printf("Status osc: %d\n", status);
+            }
+            if (buffer->osc->pitch == 0)
+                for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
+                    buffer->output->buf[i] = 0;
+            else if (buffer->osc->waveform == SQUARE)
+                generateSquare(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
+            else if (buffer->osc->waveform == SIN)
+                generateSin(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
+            else if (buffer->osc->waveform == SAW)
+                generateSaw(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
+
+            buffer->output->len = 1;
+
+            // signal the fact that new items may be consumed
+            pthread_cond_signal(&buffer->output->can_consume);
+            pthread_mutex_unlock(&buffer->output->mutex);
+            printf("osc thread ran %d\n", buffer->osc->pitch);
+
+            // pthread_mutex_lock(&buffer->input->mutex);
+            // while (buffer->input->len == 0 && !end_tasks) { // empty
+            //     // wait for new items to be appended to the buffer
+            //     pthread_cond_wait(&buffer->input->can_consume, &buffer->input->mutex);
+            // }
+            // --buffer->input->len;
+            // int tid = pthread_self();
+            // printf("Consumed [%d]: %d length: %ld\n", tid, buffer->input->buf[buffer->input->len], buffer->input->len);
+
+            // // signal the fact that new items may be produced
+            // pthread_cond_signal(&buffer->input->can_produce);
+            // pthread_mutex_unlock(&buffer->input->mutex);
+        }
     }
 
-    signal(SIGTSTP, sighandler);    // Disable CTRL+Z
-    initialiseTerminal();           // Disable echo
-    al_init();                      // Initialise sound module
-    KeyboardSetup((void*)argv[1]);  // Initialise the keyboard
-    createThreads();                // Create threads
+        // if (2 != argc) {
+        //     printf("Usage: %s <input device path>\n", argv[0]);
+        //     return 1;
+        // }
 
-    terminate();                    // Wait for threads to end and terminate program
-    return 0;
-}
+        // signal(SIGTSTP, sighandler);    // Disable CTRL+Z
+        // initialiseTerminal();           // Disable echo
+        // al_init();                      // Initialise sound module
+        // KeyboardSetup((void*)argv[1]);  // Initialise the keyboard
+        // createThreads();                // Create threads
+
+        // terminate();                    // Wait for threads to end and terminate program
+        // return 0;
+    }
