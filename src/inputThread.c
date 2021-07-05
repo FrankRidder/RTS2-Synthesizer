@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include <pthread.h>
+#include <math.h>
 
 //test
 #include "SoundManager.h"
@@ -10,6 +11,11 @@
 
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
+
+#define NUM_NOTES 88
+#define OCTAVE(n) (((n)+9)/12)
+#define NOTENAME(n) (name[((n)+9)%12])
+#define FREQUENCY(n) ( pow( pow(2.,1./12.), (n)-49. ) * 440. + .5)
 
 static int FileDevice;
 static int ReadDevice;
@@ -99,24 +105,44 @@ TASK KeyboardMonitor(void* arg)
                             al_exit();
                             return 0;
                         }
+                        /* Key codes:
+                         * 1..7 => 2..8
+                         * Q..U => 16..22
+                         * A..J => 30..36
+                         * Z..M => 44..50
+                         */
 
+                        char*name[12]={"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
+                        // C note is a, than some calculations to get up in octaves
+                        const int octave = 4;
+                        int keycode = InputEvent[Index].code;
+                        int n = (keycode + 1) % 14 + (12 * octave);
+                        printf("%-2s%d  %d\n", NOTENAME(n), OCTAVE(n), (int)FREQUENCY(n+1));
                         //----- KEY DOWN -----
-                        printf("Key down\n");
-                        for (int i = 0; i < 3; i++)
+                        printf("Key down - key code: %d\n", InputEvent[Index].code);
+
+                        if ( keycode >= 2 && keycode <= 8 ||
+                             keycode >= 16 && keycode <= 22 ||
+                             keycode >= 30 && keycode <= 36 ||
+                             keycode >= 44 && keycode <= 50
+                        )
                         {
-                            if (keyTracker[i] == 0) {
-                                keyTracker[i] = InputEvent[Index].code;
-                                oscs[i].pitch = 440;
-                                oscs[i].turnon = true;
-                                oscs[i].waveform = SAW;
-                                break;
+                            for (int i = 0; i < 3; i++)
+                            {
+                                if (keyTracker[i] == 0) {
+                                    keyTracker[i] = InputEvent[Index].code;
+                                    oscs[i].pitch = (int)FREQUENCY(n+1);
+                                    oscs[i].turnon = true;
+                                    oscs[i].waveform = (InputEvent[Index].code + 1) / 14; // TODO: Verify
+                                    break;
+                                }
                             }
                         }
                     }
                     else if (InputEvent[Index].value == 0)
                     {
                         //----- KEY UP -----
-                        printf("key up\r\n");
+                        printf("Key up - key code: %d\n", InputEvent[Index].code);
                         for (int i = 0; i < 3; i++)
                         {
                             if (keyTracker[i] == InputEvent[Index].code) 
