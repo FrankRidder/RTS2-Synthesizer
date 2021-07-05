@@ -28,7 +28,7 @@ void sighandler(int sig_num)
     // Reset handler to catch SIGTSTP next time
     signal(SIGTSTP, sighandler);
     printf("Cannot execute Ctrl+Z, use ESC instead\n");
-    
+
     for (int i = 0; i < NTHREADS; i++)
     {
         pthread_cancel(threads[i]);
@@ -93,12 +93,12 @@ void createThreads()
     };
 
     // Create threads
-    pthread_create(&threads[0], &tattr, KeyboardMonitor,  (void*)oscillators);    
+    pthread_create(&threads[0], &tattr, KeyboardMonitor,  (void*)oscillators);
     pthread_create(&threads[1], &tattr, oscillatorThread, (void*)&arg_oscillator1);
     pthread_create(&threads[2], &tattr, filterThread,   (void*)&arg_filter1);
     pthread_create(&threads[3], &tattr, volumeThread, (void*)&arg_volume1);
     pthread_create(&threads[4], &tattr, audioThread, (void*)&arg_arg_audio1);
-    
+
 }
 
 void terminate()
@@ -118,19 +118,19 @@ void terminate()
     tcsetattr(fileno(stdin), 0, &term);
 }
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
     if (2 != argc) {
         printf("Usage: %s <input device path>\n", argv[0]);
         return 1;
     }
-    
+
     signal(SIGTSTP, sighandler);    // Disable CTRL+Z
     initialiseTerminal();           // Disable echo
     al_init();                      // Initialise sound module
     KeyboardSetup((void*)argv[1]);  // Initialise the keyboard
     createThreads();                // Create threads
-    
+
     terminate();                    // Wait for threads to end and terminate program
     return 0;
 }
