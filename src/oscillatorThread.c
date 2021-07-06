@@ -41,11 +41,14 @@ TASK oscillatorThread(void* arg)
             //printf("Status osc: %d\n", status);
         }
 
-        if (buffer->osc->pitch == 0) for (int i = 0; i < SAMPLES_PER_BUFFER; i++) buffer->output->buf[i] = 0;
+        if (buffer->osc->pitch == 0) 
+            for (int i = 0; i < SAMPLES_PER_BUFFER; i++) buffer->output->buf[i] = 0;
+        else if (buffer->osc->waveform == SIN) 
+            generateSin(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
         else if (buffer->osc->waveform == SQUARE)
             generateSquare(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
-        else if (buffer->osc->waveform == SIN) generateSin(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
-        else if (buffer->osc->waveform == SAW) generateSaw(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
+        else if (buffer->osc->waveform == SAW) 
+            generateSaw(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
 
         buffer->output->len = 1;
 
@@ -93,7 +96,7 @@ void generateSin(unsigned int freq, short *samples, int frame_count) {
  */
 void generateSaw(unsigned int freq, short *samples, int buf_size) {
     for (int i = 0; i < buf_size; ++i) {
-        samples[i] = (short) (327600 * (2 * ((float) freq / (float) SAMPLE_RATE * (float) i +
+        samples[i] = (short) (32760 * (2 * ((float) freq / (float) SAMPLE_RATE * (float) i +
                                              floor((float) freq / (float) SAMPLE_RATE * (float) i + 0.5))));
     }
 

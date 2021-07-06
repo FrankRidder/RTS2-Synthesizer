@@ -13,10 +13,13 @@
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
 
+// Key notes
 #define NUM_NOTES 88
 #define OCTAVE(n) (((n)+9)/12)
 #define NOTENAME(n) (name[((n)+9)%12])
 #define FREQUENCY(n) ( pow( pow(2.,1./12.), (n)-49. ) * 440. + .5)
+
+const char *name[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
 // Terminal colors
 #define KNRM  "\x1B[0m"
@@ -82,7 +85,8 @@ void printInformation(oscillators_t *oscs)
     printf("\t  Volume: %d%%\n\n", (int)(global_volume * 100));
     printf("\t  Filter is %s\n" , filter_activated ? KGRN "activated!" KNRM : KRED "deactivated!" KNRM);
     printf("\t  Filter cut-off frequency: %d \n\n", filter_freq);
-    char *waves[4] = {"sin", "saw", "square", "triangle"};
+
+    char *waves[4] = {"sin", "square", "saw", "triangle"};
     for (int i = 0; i < NUM_OSCS; i++)
     {
         printf("\t  Pitch: %d \t", oscs[i].pitch);
@@ -128,54 +132,38 @@ TASK KeyboardMonitor(void *arg) {
 
                         int keycode = InputEvent[Index].code;
 
-                        if (keycode == KEY_ESC) {
-                            printf("Closing\n");
-                            end_tasks = 1;
-                            al_exit();
-                            return 0;
-                        }
-                        if (keycode == KEY_KPMINUS){
-                            if(filter_freq > 0){
-                                filter_freq -= 100;
-                            }
-                        }
-
-                        if (keycode == KEY_KPPLUS ) {
-                            if(filter_freq < 5000){
-                                filter_freq += 100;
-                            }
-                        }
-
-                        if (keycode == KEY_MINUS) {
-                            if (global_volume > 0.0)
-                            {
-                                global_volume -= 0.05;
-                            }
-                        }
-
-                        if (keycode == KEY_EQUAL)
+                        switch (keycode)
                         {
-                            if (global_volume < 1.0)
-                            {
-                                global_volume += 0.05;
-                            }
+                            case KEY_ESC:
+                                printf("Closing...\n");
+                                end_tasks = 1;
+                                sleep(1);
+                                al_exit();
+                                return 0;
+
+                            case KEY_KPMINUS:
+                                if(filter_freq > 0) filter_freq -= 100;
+                                break;
+
+                            case KEY_KPPLUS:
+                                if(filter_freq < 5000) filter_freq += 100;
+                                break;
+
+                            case KEY_MINUS:
+                                if (global_volume > 0.0) global_volume -= 0.05;
+                                break;
+
+                            case KEY_EQUAL:
+                                if (global_volume < 1.0) global_volume += 0.05;
+                                break;
+
+                            case KEY_SPACE:
+                                filter_activated = !filter_activated;
+                                break;
+
+                            default: break;
                         }
 
-                        if (keycode == KEY_SPACE)
-                        {
-                            filter_activated = !filter_activated;
-                        }
-                        
-
-                        /* Key codes:
-                         * 1..7 => 2..8
-                         * Q..U => 16..22
-                         * A..J => 30..36
-                         * Z..M => 44..50
-                         */
-
-                        char *name[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
-                        // C note is a, than some calculations to get up in octaives
                         const int octave = 4;
                         
                         int n = (keycode + 1) % 14 + (12 * octave);
