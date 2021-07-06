@@ -52,7 +52,16 @@ typedef struct {
     buffer_t *input;
     buffer_t *output;
     oscillators_t *osc;
+    int thread_id;
 } arguments_t; 
+
+typedef struct {
+    buffer_t *input[4];
+    buffer_t *output[4];
+    oscillators_t *osc;
+    int thread_id;
+} audio_arguments_t; 
+
 
 struct timespec start, finish;
 

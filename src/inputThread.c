@@ -150,7 +150,6 @@ TASK KeyboardMonitor(void* arg)
                                 keyTracker[i] = 0;
                                 oscs[i].pitch = 440;
                                 oscs[i].turnon = false;
-                                oscs[i].waveform = SAW;
                                 break;
                             }
                         }

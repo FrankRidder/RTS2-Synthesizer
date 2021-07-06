@@ -58,7 +58,7 @@ TASK filterThread(void* arg)
         pthread_mutex_unlock(&buffer->output->mutex);
         //printf("filter thread ran\n");
 
-
+        
 
         // for(int i = 1; i < buf_size; i++) {
         //     filtered_samples[i] = bw_low_pass(filter_bw, samples[i] * 10);

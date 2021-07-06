@@ -20,8 +20,8 @@ TASK oscillatorThread(void* arg)
         /*
          * ================ Consume ====================
          */
-        static int kickstart = 0;
-        if (kickstart != 0)
+        static int kickstart[NUM_OSCS];
+        if (kickstart[buffer->thread_id] != 0)
         {
             pthread_mutex_lock(&buffer->input->mutex);
             while (buffer->input->len == 0 && !end_tasks) { // empty
@@ -33,7 +33,7 @@ TASK oscillatorThread(void* arg)
             pthread_cond_signal(&buffer->input->can_produce);
             pthread_mutex_unlock(&buffer->input->mutex);            
         }
-        kickstart = 1;
+        kickstart[buffer->thread_id]++;
 
         pthread_mutex_lock(&buffer->output->mutex);
         if (buffer->output->len == 1) { // full
@@ -41,11 +41,6 @@ TASK oscillatorThread(void* arg)
             int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
             //printf("Status osc: %d\n", status);
         }
-        static int prot = 0;
-        if (prot == 0) {
-            clock_gettime(CLOCK_MONOTONIC, &start);
-            prot++;
-        }        
 
         if (buffer->osc->pitch == 0) for (int i = 0; i < SAMPLES_PER_BUFFER; i++) buffer->output->buf[i] = 0;
         else if (buffer->osc->waveform == SQUARE)    generateSquare(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
@@ -57,7 +52,10 @@ TASK oscillatorThread(void* arg)
         // signal the fact that new items may be consumed
         pthread_cond_signal(&buffer->output->can_consume);
         pthread_mutex_unlock(&buffer->output->mutex);
+
+                
         //printf("osc thread ran %d\n", buffer->osc->pitch);
+        //printf("Osc thread %d started test\n", buffer->thread_id);
 
         // pthread_mutex_lock(&buffer->input->mutex);
         // while (buffer->input->len == 0 && !end_tasks) { // empty
@@ -87,7 +85,7 @@ void generateSin(int freq, short *samples, int frame_count)
     for (int frame = 0; frame < frame_count; frame += 1) {
         samples[frame] = 32760 * sin((seconds_offset + frame * seconds_per_frame) * radians_per_second);
     }
-    seconds_offset = fmod(seconds_offset + seconds_per_frame * frame_count, 1.0);
+    seconds_offset = fmodf(seconds_offset + seconds_per_frame * frame_count, 1.0);
 }
 
 /*
@@ -98,6 +96,7 @@ void generateSaw(int freq, short *samples, int buf_size)
     for (int i = 0; i < buf_size; ++i) {
         samples[i] = 32760 * ( 2 * (freq / (float)SAMPLE_RATE * i + floor(freq / (float)SAMPLE_RATE * i + 0.5) ) );
     }
+
 }
 
 /*
