@@ -29,6 +29,7 @@ enum wavesforms{SIN, SQUARE, SAW, TRIANGLE};
 int end_tasks;
 unsigned int filter_freq;
 float global_volume;
+int filter_activated;
 
 typedef struct osc_type {
     unsigned int pitch;

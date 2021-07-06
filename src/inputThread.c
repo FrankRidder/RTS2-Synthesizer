@@ -18,6 +18,20 @@
 #define NOTENAME(n) (name[((n)+9)%12])
 #define FREQUENCY(n) ( pow( pow(2.,1./12.), (n)-49. ) * 440. + .5)
 
+// Terminal colors
+#define KNRM  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
+
+#define BOLDON  "\e[1m"
+#define BOLDOFF "\e[0m"
+
+
 static int FileDevice;
 static int ReadDevice;
 
@@ -53,6 +67,29 @@ int KeyboardSetup(TASK pathname) {
     return 1;
 
     
+}
+
+void printInformation(oscillators_t *oscs)  
+{
+    printf("\e[1;1H\e[2J"); // Clear terminal
+    printf(KCYN"=============================================================\n"KNRM);
+    printf(KCYN"======                  "BOLDON KGRN"RTS Synthesizer" BOLDOFF KCYN "                 =====\n"KNRM);
+    printf(KCYN"======                      " KNRM "Made by" KCYN "                     =====\n"KNRM);
+    printf(KCYN"======  "KNRM"Frank Ridder | Florian Hagens | Steven Wijnja"KCYN"   =====\n"KNRM);
+    printf(KCYN"=============================================================\n"KNRM);
+    printf("\n\n");
+
+    printf("\t  Volume: %d%%\n\n", (int)(global_volume * 100));
+    printf("\t  Filter is %s\n" , filter_activated ? KGRN "activated!" KNRM : KRED "deactivated!" KNRM);
+    printf("\t  Filter cut-off frequency: %d \n\n", filter_freq);
+    char *waves[4] = {"sin", "saw", "square", "triangle"};
+    for (int i = 0; i < NUM_OSCS; i++)
+    {
+        printf("\t  Pitch: %d \t", oscs[i].pitch);
+        printf("\t  Waveform: %s wave\n", waves[oscs[i].waveform]);
+    }
+
+    printf("\e[?25l"); // Hide cursor
 }
 
 TASK KeyboardMonitor(void *arg) {
@@ -123,6 +160,11 @@ TASK KeyboardMonitor(void *arg) {
                                 global_volume += 0.05;
                             }
                         }
+
+                        if (keycode == KEY_SPACE)
+                        {
+                            filter_activated = !filter_activated;
+                        }
                         
 
                         /* Key codes:
@@ -169,15 +211,7 @@ TASK KeyboardMonitor(void *arg) {
                         }
                         // stopPlaying(0);
                     }
-                    printf("\e[1;1H\e[2J"); // Clear terminal
-                    printf("Volume: %d%%\n", (int)(global_volume * 100));
-                    printf("Filter cut-off frequency: %d \n", filter_freq);
-                    char *waves[4] = {"sin", "saw", "square", "triangle"};
-                    for (int i = 0; i < NUM_OSCS; i++)
-                    {
-                        printf("Pitch: %d \t", oscs[i].pitch);
-                        printf("Waveform: %s wave\n", waves[oscs[i].waveform]);
-                    }
+                    printInformation(oscs);
                 }
             }
         }
