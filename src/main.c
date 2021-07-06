@@ -146,13 +146,9 @@ void testOsciilatorWCET(int times)
         else if (waveform == SAW)
             generateSaw(pitch, samples, SAMPLES_PER_BUFFER);
 
-        for (int k = 0; k < SAMPLES_PER_BUFFER; k++)
-        {
-            randArray[k] = samples[k];
-        }
         clock_gettime(CLOCK_MONOTONIC, &finish);
         elapsed = (finish.tv_sec - start.tv_sec);
-        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000.0; //us
         printf("%f \n", elapsed);
     }
 }
