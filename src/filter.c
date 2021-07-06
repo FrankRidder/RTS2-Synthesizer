@@ -303,6 +303,23 @@ CHEBandStop* create_che_band_stop_filter(int n, FTR_PRECISION epsilon, FTR_PRECI
     return filter;
 }
 
+void change_bw_low_pass(BWLowPass* filter, FTR_PRECISION s, FTR_PRECISION f)
+{
+    FTR_PRECISION a = TAN(M_PI * f/s);
+    FTR_PRECISION a2 = a * a;
+    FTR_PRECISION r;
+    
+    int i;
+    
+    for(i=0; i < filter -> n; ++i){
+        r = SIN(M_PI*(2.0*i+1.0)/(4.0*filter -> n));
+        s = a2 + 2.0*a*r + 1.0;
+        filter -> A[i] = a2/s;
+        filter -> d1[i] = 2.0*(1-a2)/s;
+        filter -> d2[i] = -(a2 - 2.0*a*r + 1.0)/s;
+    }
+}
+
 void free_bw_low_pass(BWLowPass* filter){
     free(filter -> A);
     free(filter -> d1);

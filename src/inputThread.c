@@ -84,7 +84,7 @@ void printInformation(oscillators_t *oscs)
     printf(KCYN"=============================================================\n"KNRM);
     printf("\n\n");
 
-    printf("\t  Volume: %d%%\n\n", (int)(global_volume * 100));
+    printf("\t  Volume: %d%%\n\n", (int)(global_volume * 100 + 0.5));
 
     printf("\t  Filter is %s\n" , filter_activated ? KGRN "activated!" KNRM : KRED "deactivated!" KNRM);
     printf("\t  Filter cut-off frequency: %d \n\n", filter_freq);
