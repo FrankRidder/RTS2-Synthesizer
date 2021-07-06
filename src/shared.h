@@ -30,6 +30,7 @@ int end_tasks;
 unsigned int filter_freq;
 float global_volume;
 int filter_activated;
+int octave;
 
 typedef struct osc_type {
     unsigned int pitch;

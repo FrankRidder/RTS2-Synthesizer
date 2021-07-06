@@ -42,9 +42,13 @@ void initialiseTerminal() {
 void createThreads() {
     int status = 0;
     end_tasks = 0;
+
+    // Shared variable initialising - TODO: need clean up
     filter_freq = 2000;
     global_volume = 1;
     filter_activated = 1;
+    octave = 4;
+
     struct sched_param param;
     pthread_attr_t tattr;
 

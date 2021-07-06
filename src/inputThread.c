@@ -74,6 +74,8 @@ int KeyboardSetup(TASK pathname) {
 
 void printInformation(oscillators_t *oscs)  
 {
+    const static char *waves[4] = {"sin", "square", "saw", "triangle"};
+
     printf("\e[1;1H\e[2J"); // Clear terminal
     printf(KCYN"=============================================================\n"KNRM);
     printf(KCYN"======                  "BOLDON KGRN"RTS Synthesizer" BOLDOFF KCYN "                 =====\n"KNRM);
@@ -83,10 +85,12 @@ void printInformation(oscillators_t *oscs)
     printf("\n\n");
 
     printf("\t  Volume: %d%%\n\n", (int)(global_volume * 100));
+
     printf("\t  Filter is %s\n" , filter_activated ? KGRN "activated!" KNRM : KRED "deactivated!" KNRM);
     printf("\t  Filter cut-off frequency: %d \n\n", filter_freq);
 
-    char *waves[4] = {"sin", "square", "saw", "triangle"};
+    printf("\t  Octave: %d\n\n", octave);
+    
     for (int i = 0; i < NUM_OSCS; i++)
     {
         printf("\t  Pitch: %d \t", oscs[i].pitch);
@@ -138,6 +142,7 @@ TASK KeyboardMonitor(void *arg) {
                                 printf("Closing...\n");
                                 end_tasks = 1;
                                 sleep(1);
+                                printf("\e[1;1H\e[2J"); // Clear terminal
                                 al_exit();
                                 return 0;
 
@@ -161,10 +166,37 @@ TASK KeyboardMonitor(void *arg) {
                                 filter_activated = !filter_activated;
                                 break;
 
+                            case KEY_KP1:
+                                octave = 1;
+                                break;
+                            case KEY_KP2:
+                                octave = 2;
+                                break;
+                            case KEY_KP3:
+                                octave = 3;
+                                break;
+                            case KEY_KP4:
+                                octave = 4;
+                                break;
+                            case KEY_KP5:
+                                octave = 5;
+                                break;
+                            case KEY_KP6:
+                                octave = 6;
+                                break;
+                            case KEY_KP7:
+                                octave = 7;
+                                break;
+                            case KEY_KP8:
+                                octave = 8;
+                                break;
+                            case KEY_KP9:
+                                octave = 9;
+                                break;
+
+
                             default: break;
                         }
-
-                        const int octave = 4;
                         
                         int n = (keycode + 1) % 14 + (12 * octave);
                         //printf("%-2s%d  %d\n", NOTENAME(n), OCTAVE(n), (int) FREQUENCY(n + 1));
@@ -176,7 +208,7 @@ TASK KeyboardMonitor(void *arg) {
                             keycode >= 30 && keycode <= 36 ||
                             keycode >= 44 && keycode <= 50
                         ) {
-                            for (int i = 0; i < 3; i++) {
+                            for (int i = 0; i < NUM_OSCS; i++) {
                                 if (keyTracker[i] == 0) {
                                     keyTracker[i] = InputEvent[Index].code;
                                     oscs[i].pitch = (int) FREQUENCY(n + 1);
