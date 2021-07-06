@@ -49,7 +49,10 @@ int KeyboardSetup(TASK pathname) {
     memset(bit, 0, sizeof(bit));
     ioctl(FileDevice, EVIOCGBIT(0, EV_MAX), bit[0]);
     printf("Waiting for input...\r\n");
+    //printf("Filter cut-off frequency: %d", filter_freq);
     return 1;
+
+    
 }
 
 TASK KeyboardMonitor(void *arg) {
@@ -86,24 +89,41 @@ TASK KeyboardMonitor(void *arg) {
                         //cout << endl;
                     } else if (InputEvent[Index].value == 1) {
 
-                        //playInLoop(0, 440);
-                        if (InputEvent[Index].code == KEY_ESC) {
+                        int keycode = InputEvent[Index].code;
+
+                        if (keycode == KEY_ESC) {
                             printf("Closing\n");
                             end_tasks = 1;
                             al_exit();
                             return 0;
                         }
-                        if(InputEvent[Index].code == KEY_MINUS || InputEvent[Index].code == KEY_KPMINUS){
+                        if (keycode == KEY_KPMINUS){
                             if(filter_freq > 0){
                                 filter_freq -= 100;
                             }
                         }
 
-                        if(InputEvent[Index].code == KEY_EQUAL || InputEvent[Index].code == KEY_KPPLUS ){
+                        if (keycode == KEY_KPPLUS ) {
                             if(filter_freq < 5000){
                                 filter_freq += 100;
                             }
                         }
+
+                        if (keycode == KEY_MINUS) {
+                            if (global_volume > 0.0)
+                            {
+                                global_volume -= 0.05;
+                            }
+                        }
+
+                        if (keycode == KEY_EQUAL)
+                        {
+                            if (global_volume < 1.0)
+                            {
+                                global_volume += 0.05;
+                            }
+                        }
+                        
 
                         /* Key codes:
                          * 1..7 => 2..8
@@ -115,17 +135,17 @@ TASK KeyboardMonitor(void *arg) {
                         char *name[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
                         // C note is a, than some calculations to get up in octaives
                         const int octave = 4;
-                        int keycode = InputEvent[Index].code;
+                        
                         int n = (keycode + 1) % 14 + (12 * octave);
-                        printf("%-2s%d  %d\n", NOTENAME(n), OCTAVE(n), (int) FREQUENCY(n + 1));
+                        //printf("%-2s%d  %d\n", NOTENAME(n), OCTAVE(n), (int) FREQUENCY(n + 1));
                         //----- KEY DOWN -----
-                        printf("Key down - key code: %d\n", InputEvent[Index].code);
+                        //printf("Key down - key code: %d\n", InputEvent[Index].code);
 
                         if (keycode >= 2 && keycode <= 8 ||
                             keycode >= 16 && keycode <= 22 ||
                             keycode >= 30 && keycode <= 36 ||
                             keycode >= 44 && keycode <= 50
-                                ) {
+                        ) {
                             for (int i = 0; i < 3; i++) {
                                 if (keyTracker[i] == 0) {
                                     keyTracker[i] = InputEvent[Index].code;
@@ -138,16 +158,25 @@ TASK KeyboardMonitor(void *arg) {
                         }
                     } else if (InputEvent[Index].value == 0) {
                         //----- KEY UP -----
-                        printf("Key up - key code: %d\n", InputEvent[Index].code);
-                        for (int i = 0; i < 3; i++) {
+                        //printf("Key up - key code: %d\n", InputEvent[Index].code);
+                        for (int i = 0; i < NUM_OSCS; i++) {
                             if (keyTracker[i] == InputEvent[Index].code) {
                                 keyTracker[i] = 0;
-                                oscs[i].pitch = 440;
+                                oscs[i].pitch = 0;
                                 oscs[i].turnon = false;
                                 break;
                             }
                         }
                         // stopPlaying(0);
+                    }
+                    printf("\e[1;1H\e[2J"); // Clear terminal
+                    printf("Volume: %d%%\n", (int)(global_volume * 100));
+                    printf("Filter cut-off frequency: %d \n", filter_freq);
+                    char *waves[4] = {"sin", "saw", "square", "triangle"};
+                    for (int i = 0; i < NUM_OSCS; i++)
+                    {
+                        printf("Pitch: %d \t", oscs[i].pitch);
+                        printf("Waveform: %s wave\n", waves[oscs[i].waveform]);
                     }
                 }
             }
