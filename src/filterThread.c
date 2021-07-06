@@ -8,7 +8,7 @@ TASK filterThread(void* arg)
     arguments_t *buffer = (arguments_t*)arg;
         
     short * samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
-    BWLowPass* filter_bw = create_bw_low_pass_filter(4, SAMPLE_RATE, filter_freq);
+    BWLowPass* filter_bw = create_bw_low_pass_filter(4, SAMPLE_RATE, (float) filter_freq);
     while (!end_tasks) 
     {
         /*
@@ -32,9 +32,9 @@ TASK filterThread(void* arg)
          */
         // Recreating filter because there is no option to change frequency (yet)
         if (filter_activated) {
-            change_bw_low_pass(filter_bw, SAMPLE_RATE, filter_freq);
+            change_bw_low_pass(filter_bw, SAMPLE_RATE, (float) filter_freq);
             for(int i = 1; i < SAMPLES_PER_BUFFER; i++) {
-                samples[i] = bw_low_pass(filter_bw, samples[i]);
+                samples[i] = (short) bw_low_pass(filter_bw, (float) samples[i]);
             }
         }
 

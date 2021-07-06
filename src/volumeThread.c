@@ -10,10 +10,10 @@ TASK volumeThread(void *arg) {
     ADSR *adsr = createADSR();
 
     // initialize settings
-    setAttackRate(adsr,    .1 * SAMPLE_RATE );  // .1 second
-    setDecayRate(adsr,     .3 * SAMPLE_RATE );
+    setAttackRate(adsr,    .1f * SAMPLE_RATE );  // .1 second
+    setDecayRate(adsr,     .3f * SAMPLE_RATE );
     setReleaseRate(adsr,    3 * SAMPLE_RATE );
-    setSustainLevel(adsr,  .8 );
+    setSustainLevel(adsr,  .8f );
     
     // gate(&adsr, true);
     short *samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);

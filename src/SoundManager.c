@@ -98,7 +98,7 @@ void al_exit() {
 
 
 float filter(float cutofFreq) {
-    float RC = 1.0f / (cutofFreq * 2 * M_PI);
+    float RC = 1.0f / (cutofFreq * 2.0f * (float)M_PI);
     float dt = 1.0f / SAMPLE_RATE;
     float alpha = dt / (RC + dt);
 
@@ -106,7 +106,7 @@ float filter(float cutofFreq) {
 }
 
 void band_pass_example() {
-    BWBandPass *filter = create_bw_band_pass_filter(4, 250, 2, 45);
+    BWBandPass *filter = create_bw_band_pass_filter(4, 250.0f, 2.0f, 45.0f);
 
     for (int i = 0; i < 100; i++) {
         printf("Output[%d]:%f\n", i, bw_band_pass(filter, (float) i * 100));

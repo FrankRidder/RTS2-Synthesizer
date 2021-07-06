@@ -21,6 +21,11 @@ void generateSaw(unsigned int freq, short *samples, int buf_size);
  */
 void generateSquare(unsigned int freq, short *samples, int buf_size);
 
+/*
+ *  Generate triangular wave from -32760 to 32760
+ */
+void generateTriangle(unsigned int freq, short *samples, int buf_size);
+
 
 
 #endif

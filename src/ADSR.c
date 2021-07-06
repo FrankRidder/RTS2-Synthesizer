@@ -31,9 +31,9 @@ ADSR* createADSR()
     setAttackRate(ptr,0);
     setDecayRate(ptr,0);
     setReleaseRate(ptr,0);
-    setSustainLevel(ptr,1.0);
-    setTargetRatioA(ptr,0.3);
-    setTargetRatioDR(ptr,0.0001);
+    setSustainLevel(ptr,1.0f);
+    setTargetRatioA(ptr,0.3f);
+    setTargetRatioDR(ptr,0.0001f);
     
 	return ptr;
 }
@@ -46,19 +46,19 @@ void destroyADSR() {
 void setAttackRate(ADSR* ptr, float rate) {
     ptr->attackRate = rate;
     ptr->attackCoef = calcCoef(rate, ptr->targetRatioA);
-    ptr->attackBase = (1.0 + ptr->targetRatioA) * (1.0 - ptr->attackCoef);
+    ptr->attackBase = (1.0f + ptr->targetRatioA) * (1.0f - ptr->attackCoef);
 }
 
 void setDecayRate(ADSR* ptr,float rate) {
     ptr->decayRate = rate;
     ptr->decayCoef = calcCoef(rate, ptr->targetRatioDR);
-    ptr->decayBase = (ptr->sustainLevel - ptr->targetRatioDR) * (1.0 - ptr->decayCoef);
+    ptr->decayBase = (ptr->sustainLevel - ptr->targetRatioDR) * (1.0f - ptr->decayCoef);
 }
 
 void setReleaseRate(ADSR* ptr, float rate) {
     ptr->releaseRate = rate;
     ptr->releaseCoef = calcCoef(rate, ptr->targetRatioDR);
-    ptr->releaseBase = -ptr->targetRatioDR * (1.0 - ptr->releaseCoef);
+    ptr->releaseBase = -ptr->targetRatioDR * (1.0f - ptr->releaseCoef);
 }
 
 float calcCoef(float rate, float targetRatio) {
@@ -67,22 +67,22 @@ float calcCoef(float rate, float targetRatio) {
 
 void setSustainLevel(ADSR* ptr, float level) {
     ptr->sustainLevel = level;
-    ptr->decayBase = (ptr->sustainLevel - ptr->targetRatioDR) * (1.0 - ptr->decayCoef);
+    ptr->decayBase = (ptr->sustainLevel - ptr->targetRatioDR) * (1.0f - ptr->decayCoef);
 }
 
 void setTargetRatioA(ADSR* ptr, float targetRatio) {
-    if (targetRatio < 0.000000001)
-        targetRatio = 0.000000001;  // -180 dB
+    if (targetRatio < 0.000000001f)
+        targetRatio = 0.000000001f;  // -180 dB
     ptr->targetRatioA = targetRatio;
-    ptr->attackBase = (1.0 + ptr->targetRatioA) * (1.0 - ptr->attackCoef);
+    ptr->attackBase = (1.0f + ptr->targetRatioA) * (1.0f - ptr->attackCoef);
 }
 
 void setTargetRatioDR(ADSR* ptr, float targetRatio) {
-    if (targetRatio < 0.000000001)
-        targetRatio = 0.000000001;  // -180 dB
+    if (targetRatio < 0.000000001f)
+        targetRatio = 0.000000001f;  // -180 dB
     ptr->targetRatioDR = targetRatio;
-    ptr->decayBase = (ptr->sustainLevel - ptr->targetRatioDR) * (1.0 - ptr->decayCoef);
-    ptr->releaseBase = -ptr->targetRatioDR * (1.0 - ptr->releaseCoef);
+    ptr->decayBase = (ptr->sustainLevel - ptr->targetRatioDR) * (1.0f - ptr->decayCoef);
+    ptr->releaseBase = -ptr->targetRatioDR * (1.0f - ptr->releaseCoef);
 }
 
 float process(ADSR* ptr) {
@@ -91,8 +91,8 @@ float process(ADSR* ptr) {
             break;
         case env_attack:
             ptr->output = ptr->attackBase + ptr->output * ptr->attackCoef;
-            if (ptr->output >= 1.0) {
-                ptr->output = 1.0;
+            if (ptr->output >= 1.0f) {
+                ptr->output = 1.0f;
                 ptr->state = env_decay;
             }
             break;
@@ -107,8 +107,8 @@ float process(ADSR* ptr) {
             break;
         case env_release:
             ptr->output = ptr->releaseBase + ptr->output * ptr->releaseCoef;
-            if (ptr->output <= 0.0) {
-                ptr->output = 0.0;
+            if (ptr->output <= 0.0f) {
+                ptr->output = 0.0f;
                 ptr->state = env_idle;
             }
 	}
@@ -133,7 +133,7 @@ int getState(ADSR* ptr) {
 void reset(ADSR* ptr) {
 	ptr->gate = 0;
     ptr->state = env_idle;
-    ptr->output = 0.0;
+    ptr->output = 0.0f;
 }
 
 float getOutput(ADSR* ptr) {
