@@ -13,6 +13,7 @@
 #include "volumeThread.h"
 
 #include "filter.h"
+#include "ADSR.h"
 
 #include "shared.h"
 
@@ -198,21 +199,57 @@ void testVolumeWCET(int times)
 {
     struct timespec start, finish;
     double elapsed;
+    short randArray[SAMPLES_PER_BUFFER];
     //declare variables
+    short buffer[SAMPLES_PER_BUFFER];
+
+    ADSR *adsr = createADSR();
+
+    // initialize settings
+    setAttackRate(adsr, .1 * SAMPLE_RATE); // .1 second
+    setDecayRate(adsr, .3 * SAMPLE_RATE);
+    setReleaseRate(adsr, 5 * SAMPLE_RATE);
+    setSustainLevel(adsr, .8);
+
+    // gate(&adsr, true);
+    short *samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
+    float adsr_volume;
 
     for (int i = 0; i < times; i++)
     {
         //set random input variables here
+        for (int j = 0; j < 1024; j++)
+        {
+            randArray[j] = ((-32767) + (rand() % ((32767) - (-32767) + 1)));
+        }
 
         clock_gettime(CLOCK_MONOTONIC, &start);
+
         //start thread here
 
+        for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
+        {
+            samples[i] = randArray[i];
+        }
+
+        gate(adsr, true);
+        for (int i = 1; i < SAMPLES_PER_BUFFER; i++)
+        {
+            adsr_volume = process(adsr);
+            samples[i] *= global_volume * adsr_volume;
+        }
+
+        for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
+        {
+            buffer[i] = samples[i];
+        }
         //finish thread here
         clock_gettime(CLOCK_MONOTONIC, &finish);
         elapsed = (finish.tv_sec - start.tv_sec);
         elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
         printf("%f \n", elapsed);
     }
+    free(adsr);
 }
 
 void testInput(int times)
