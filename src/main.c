@@ -23,31 +23,27 @@ static pthread_t threads[NTHREADS];
 static struct termios term;
 
 // Signal Handler for SIGTSTP, we will get huge memory leaks if not closing properly.
-void sighandler(int sig_num)
-{
+void sighandler(int sig_num) {
     // Reset handler to catch SIGTSTP next time
     signal(SIGTSTP, sighandler);
     printf("Cannot execute Ctrl+Z, use ESC instead\n");
-    
-    for (int i = 0; i < NTHREADS; i++)
-    {
+
+    for (int i = 0; i < NTHREADS; i++) {
         pthread_cancel(threads[i]);
     }
 }
 
-void initialiseTerminal()
-{
+void initialiseTerminal() {
     tcgetattr(fileno(stdin), &term);
     term.c_lflag &= ~ECHO;
     tcsetattr(fileno(stdin), 0, &term);
 }
 
-void createThreads()
-{
+void createThreads() {
     int status = 0;
     end_tasks = 0;
     filter_freq = 2000;
-    global_volume = 1.0;
+    global_volume = 1;
     struct sched_param param;
     pthread_attr_t tattr;
 
@@ -116,11 +112,9 @@ void createThreads()
     
 }
 
-void terminate()
-{
+void terminate() {
     /* Wait for threads to end */
-    for (int i = 0; i < NTHREADS; i++)
-    {
+    for (int i = 0; i < NTHREADS; i++) {
         pthread_join(threads[i], NULL);
     }
 
@@ -133,19 +127,18 @@ void terminate()
     tcsetattr(fileno(stdin), 0, &term);
 }
 
-int main(int argc, char *argv[]) 
-{
+int main(int argc, char *argv[]) {
     if (2 != argc) {
         printf("Usage: %s <input device path>\n", argv[0]);
         return 1;
     }
-    
+
     signal(SIGTSTP, sighandler);    // Disable CTRL+Z
     initialiseTerminal();           // Disable echo
     al_init();                      // Initialise sound module
-    KeyboardSetup((void*)argv[1]);  // Initialise the keyboard
+    KeyboardSetup((void *) argv[1]);  // Initialise the keyboard
     createThreads();                // Create threads
-    
+
     terminate();                    // Wait for threads to end and terminate program
     return 0;
 }

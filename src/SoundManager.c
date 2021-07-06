@@ -17,20 +17,19 @@
 
 #define  NBUFFERS 4
 
-ALCdevice  * openal_output_device;
-ALCcontext * openal_output_context;
+ALCdevice *openal_output_device;
+ALCcontext *openal_output_context;
 
 static ALuint internal_buffer[NUM_OSCS][NBUFFERS];
 static ALuint streaming_source[NUM_OSCS];
 
 
-
-int al_check_error(const char * given_label) {
+int al_check_error(const char *given_label) {
 
     ALenum al_error;
     al_error = alGetError();
 
-    if(AL_NO_ERROR != al_error) {
+    if (AL_NO_ERROR != al_error) {
         printf("ERROR - %s  (%s)\r\n", alGetString(al_error), given_label);
         return al_error;
     }
@@ -38,9 +37,9 @@ int al_check_error(const char * given_label) {
 }
 
 void al_init() {
-    const char * defname = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+    const char *defname = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 
-    openal_output_device  = alcOpenDevice(defname);
+    openal_output_device = alcOpenDevice(defname);
     openal_output_context = alcCreateContext(openal_output_device, NULL);
 
     alcMakeContextCurrent(openal_output_context);
@@ -76,7 +75,7 @@ void al_init() {
     }
 }
 
-void al_exit() { 
+void al_exit() {
     // This function is not used (yet)
     ALenum errorCode = 0;
 
@@ -98,20 +97,19 @@ void al_exit() {
 }
 
 
-float filter(float cutofFreq){
-    float RC = 1.0/(cutofFreq * 2 * M_PI);
-    float dt = 1.0/SAMPLE_RATE;
-    float alpha = dt/(RC+dt);
+float filter(float cutofFreq) {
+    float RC = 1.0f / (cutofFreq * 2 * M_PI);
+    float dt = 1.0f / SAMPLE_RATE;
+    float alpha = dt / (RC + dt);
 
     return alpha;
 }
 
-void band_pass_example()
-{
-    BWBandPass* filter = create_bw_band_pass_filter(4, 250, 2, 45);
-    
-    for(int i = 0; i < 100; i++){
-        printf("Output[%d]:%f\n", i, bw_band_pass(filter, i* 100));
+void band_pass_example() {
+    BWBandPass *filter = create_bw_band_pass_filter(4, 250, 2, 45);
+
+    for (int i = 0; i < 100; i++) {
+        printf("Output[%d]:%f\n", i, bw_band_pass(filter, (float) i * 100));
     }
 
     free_bw_band_pass(filter);
@@ -296,18 +294,17 @@ void playInLoop(int source, int frequency)
     // // alSourcePlay(streaming_source[source]);
 }
 
-void stopPlaying(int source)
-{
+void stopPlaying(int source) {
     ALenum errorCode = 0;
 
     // Stop the source
     alSourceStop(streaming_source[source]);
-    al_check_error("alSourceStop");       
+    al_check_error("alSourceStop");
 
     // Stop looping and detach buffer
     alSourcei(streaming_source[source], AL_LOOPING, 0);
-    alSourcei(streaming_source[source], AL_BUFFER, 0), 
-    al_check_error("alSourcei");
+    alSourcei(streaming_source[source], AL_BUFFER, 0),
+            al_check_error("alSourcei");
 
     //printf("Deleting sources from %d\r\n", source);
 }

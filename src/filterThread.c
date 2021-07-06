@@ -28,8 +28,7 @@ TASK filterThread(void* arg)
 
         /*
          * ================ Process ====================
-         */        
-
+         */
         // Recreating filter because there is no option to change frequency (yet)
         BWLowPass* filter_bw = create_bw_low_pass_filter(4, SAMPLE_RATE, filter_freq);
         for(int i = 1; i < SAMPLES_PER_BUFFER; i++) {
@@ -65,5 +64,6 @@ TASK filterThread(void* arg)
         // }
     }
 
-    
+
+    return NULL;
 }

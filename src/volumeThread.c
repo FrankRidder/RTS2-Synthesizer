@@ -4,11 +4,10 @@
 #include <stdlib.h>    // gives malloc
 #include <stdio.h>
 
-TASK volumeThread(void* arg)
-{
-    arguments_t *buffer = (arguments_t*)arg;
+TASK volumeThread(void *arg) {
+    arguments_t *buffer = (arguments_t *) arg;
 
-    ADSR* adsr = createADSR();
+    ADSR *adsr = createADSR();
 
     // initialize settings
     setAttackRate(adsr,    .1 * SAMPLE_RATE );  // .1 second
@@ -17,11 +16,10 @@ TASK volumeThread(void* arg)
     setSustainLevel(adsr,  .8 );
     
     // gate(&adsr, true);
-    short * samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
+    short *samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
     float adsr_volume;
 
-    while(!end_tasks)
-    {
+    while (!end_tasks) {
         /*
          * ================ Consume ====================
          */
@@ -31,7 +29,7 @@ TASK volumeThread(void* arg)
             pthread_cond_wait(&buffer->input->can_consume, &buffer->input->mutex);
         }
         buffer->input->len = 0;
-        for(int i = 0; i < SAMPLES_PER_BUFFER; i++) {
+        for (int i = 0; i < SAMPLES_PER_BUFFER; i++) {
             samples[i] = buffer->input->buf[i];
         }
         // signal the fact that new items may be produced
@@ -42,11 +40,10 @@ TASK volumeThread(void* arg)
          * ================ Process ====================
          */
 
-
         gate(adsr, buffer->osc->turnon);
         //gate(adsr, true);
-        for(int i = 1; i < SAMPLES_PER_BUFFER; i++) {
-            adsr_volume =  process(adsr);
+        for (int i = 1; i < SAMPLES_PER_BUFFER; i++) {
+            adsr_volume = process(adsr);
             samples[i] *= global_volume * adsr_volume;
         }
         if (adsr_volume == 0) buffer->osc->pitch = 0;
@@ -61,8 +58,7 @@ TASK volumeThread(void* arg)
             int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
             //printf("Status volume: %d\n", status);
         }
-        for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
-        {
+        for (int i = 0; i < SAMPLES_PER_BUFFER; i++) {
             buffer->output->buf[i] = samples[i];
         }
         buffer->output->len = 1;
@@ -78,4 +74,5 @@ TASK volumeThread(void* arg)
         // }
     }
     free(adsr);
+    return NULL;
 }
