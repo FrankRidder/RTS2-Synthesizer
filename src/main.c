@@ -12,6 +12,8 @@
 #include "filterThread.h"
 #include "volumeThread.h"
 
+#include "filter.h"
+
 #include "shared.h"
 
 #define NTHREADS 10
@@ -51,8 +53,8 @@ void createThreads()
     struct sched_param param;
     pthread_attr_t tattr;
 
-    pthread_attr_init(&tattr);                      //tattr init met defaultwaarden
-    pthread_attr_setschedpolicy(&tattr, SCHED_RR);  //sched policy aanpassen
+    pthread_attr_init(&tattr);                     //tattr init met defaultwaarden
+    pthread_attr_setschedpolicy(&tattr, SCHED_RR); //sched policy aanpassen
 
     /* setting the new scheduling param */
     pthread_attr_setschedparam(&tattr, &param);
@@ -71,34 +73,29 @@ void createThreads()
     static arguments_t arg_oscillator1 = {
         .input = NULL,
         .output = &buf_osc_to_filter1,
-        .osc = &oscillators[0]
-    };
+        .osc = &oscillators[0]};
 
     static arguments_t arg_filter1 = {
         .input = &buf_osc_to_filter1,
         .output = &buf_filter_to_volume1,
-        .osc = &oscillators[0]
-    };
+        .osc = &oscillators[0]};
 
     static arguments_t arg_volume1 = {
         .input = &buf_filter_to_volume1,
         .output = &buf_volume_to_audio1,
-        .osc = &oscillators[0]
-    };
+        .osc = &oscillators[0]};
 
     static arguments_t arg_arg_audio1 = {
         .input = &buf_volume_to_audio1,
         .output = NULL,
-        .osc = &oscillators[0]
-    };
+        .osc = &oscillators[0]};
 
     // Create threads
-    pthread_create(&threads[0], &tattr, KeyboardMonitor,  (void*)oscillators);
-    pthread_create(&threads[1], &tattr, oscillatorThread, (void*)&arg_oscillator1);
-    pthread_create(&threads[2], &tattr, filterThread,   (void*)&arg_filter1);
-    pthread_create(&threads[3], &tattr, volumeThread, (void*)&arg_volume1);
-    pthread_create(&threads[4], &tattr, audioThread, (void*)&arg_arg_audio1);
-
+    pthread_create(&threads[0], &tattr, KeyboardMonitor, (void *)oscillators);
+    pthread_create(&threads[1], &tattr, oscillatorThread, (void *)&arg_oscillator1);
+    pthread_create(&threads[2], &tattr, filterThread, (void *)&arg_filter1);
+    pthread_create(&threads[3], &tattr, volumeThread, (void *)&arg_volume1);
+    pthread_create(&threads[4], &tattr, audioThread, (void *)&arg_arg_audio1);
 }
 
 void terminate()
@@ -114,7 +111,7 @@ void terminate()
     tcdrain(stdin_copy);
     tcflush(stdin_copy, TCIFLUSH);
     close(stdin_copy);
-    term.c_lflag |= ECHO;  /* turn on ECHO */
+    term.c_lflag |= ECHO; /* turn on ECHO */
     tcsetattr(fileno(stdin), 0, &term);
 }
 
@@ -130,7 +127,6 @@ void testOsciilatorWCET(int times)
         pitch = rand() % 1000;
         waveform = rand() % 3;
 
-        short randArray[1024];
         for (int j = 0; j < 1024; j++)
             samples[j] = ((-32767) + (rand() % ((32767) - (-32767) + 1)));
 
@@ -148,12 +144,120 @@ void testOsciilatorWCET(int times)
 
         clock_gettime(CLOCK_MONOTONIC, &finish);
         elapsed = (finish.tv_sec - start.tv_sec);
-        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000.0; //us
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
+        printf("%f \n", elapsed);
+    }
+}
+
+void testFilterWCET(int times)
+{
+    struct timespec start, finish;
+    double elapsed;
+    short randArray[SAMPLES_PER_BUFFER];
+    //declare variables
+
+    short *samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
+    for (int z = 0; z < times; z++)
+    {
+        //set random input variables here
+        for (int j = 0; j < 1024; j++)
+        {
+            randArray[j] = ((-32767) + (rand() % ((32767) - (-32767) + 1)));
+        }
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        //start thread here
+        short buffer[SAMPLES_PER_BUFFER];
+
+        for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
+        {
+            samples[i] = randArray[i];
+        }
+
+        BWLowPass *filter_bw = create_bw_low_pass_filter(4, SAMPLE_RATE, filter_freq);
+        for (int i = 1; i < SAMPLES_PER_BUFFER; i++)
+        {
+            samples[i] = bw_low_pass(filter_bw, samples[i] * 10);
+        }
+        free_bw_low_pass(filter_bw);
+
+        for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
+        {
+            buffer[i] = samples[i];
+        }
+        free(samples);
+        //finish thread here
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        elapsed = (finish.tv_sec - start.tv_sec);
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
+        printf("%f \n", elapsed);
+    }
+}
+
+void testVolumeWCET(int times)
+{
+    struct timespec start, finish;
+    double elapsed;
+    //declare variables
+
+    for (int i = 0; i < times; i++)
+    {
+        //set random input variables here
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        //start thread here
+
+        //finish thread here
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        elapsed = (finish.tv_sec - start.tv_sec);
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
+        printf("%f \n", elapsed);
+    }
+}
+
+void testInput(int times)
+{
+    struct timespec start, finish;
+    double elapsed;
+    //declare variables
+
+    for (int i = 0; i < times; i++)
+    {
+        //set random input variables here
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        //start thread here
+
+        //finish thread here
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        elapsed = (finish.tv_sec - start.tv_sec);
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
+        printf("%f \n", elapsed);
+    }
+}
+
+void testAudio(int times)
+{
+    struct timespec start, finish;
+    double elapsed;
+    //declare variables
+
+    for (int i = 0; i < times; i++)
+    {
+        //set random input variables here
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        //start thread here
+
+        //finish thread here
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        elapsed = (finish.tv_sec - start.tv_sec);
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
         printf("%f \n", elapsed);
     }
 }
 
 int main(int argc, char *argv[])
 {
-    testOsciilatorWCET(1000);
+    // testOsciilatorWCET(500);
+    testFilterWCET(500);
 }
