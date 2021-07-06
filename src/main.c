@@ -155,8 +155,8 @@ void testFilterWCET(int times)
     double elapsed;
     short randArray[SAMPLES_PER_BUFFER];
     //declare variables
-
     short *samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
+
     for (int z = 0; z < times; z++)
     {
         //set random input variables here
@@ -184,13 +184,14 @@ void testFilterWCET(int times)
         {
             buffer[i] = samples[i];
         }
-        free(samples);
+
         //finish thread here
         clock_gettime(CLOCK_MONOTONIC, &finish);
         elapsed = (finish.tv_sec - start.tv_sec);
         elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
         printf("%f \n", elapsed);
     }
+    free(samples);
 }
 
 void testVolumeWCET(int times)
