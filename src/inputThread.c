@@ -231,10 +231,12 @@ TASK KeyboardMonitor(void *arg) {
                         }
                         // stopPlaying(0);
                     }
-                    printInformation(oscs);
                 }
             }
+        
+            printInformation(oscs);
         }
+        
     }
     return NULL;
 }
