@@ -14,7 +14,7 @@
 #include "filter.h"
 
 
-#define  NBUFFERS 4
+#define  NBUFFERS 6
 
 ALCdevice *openal_output_device;
 ALCcontext *openal_output_context;
