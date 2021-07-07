@@ -19,8 +19,7 @@ TASK oscillatorThread(void *arg) {
          * ================ Consume ====================
          */
         static int kickstart[NUM_OSCS];
-        if (kickstart[buffer->thread_id] != 0)
-        {
+        if (kickstart[buffer->thread_id] != 0) {
             pthread_mutex_lock(&buffer->input->mutex);
             while (buffer->input->len == 0 && !end_tasks) { // empty
                 // wait for new items to be appended to the buffer
@@ -40,13 +39,13 @@ TASK oscillatorThread(void *arg) {
             //printf("Status osc: %d\n", status);
         }
 
-        if (buffer->osc->pitch == 0) 
+        if (buffer->osc->pitch == 0)
             for (int i = 0; i < SAMPLES_PER_BUFFER; i++) buffer->output->buf[i] = 0;
-        else if (buffer->osc->waveform == SIN) 
+        else if (buffer->osc->waveform == SIN)
             generateSin(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
         else if (buffer->osc->waveform == SQUARE)
             generateSquare(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
-        else if (buffer->osc->waveform == SAW) 
+        else if (buffer->osc->waveform == SAW)
             generateSaw(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
         else if (buffer->osc->waveform == TRIANGLE)
             generateTriangle(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
@@ -57,7 +56,7 @@ TASK oscillatorThread(void *arg) {
         pthread_cond_signal(&buffer->output->can_consume);
         pthread_mutex_unlock(&buffer->output->mutex);
 
-                
+
         //printf("osc thread ran %d\n", buffer->osc->pitch);
         //printf("Osc thread %d started test\n", buffer->thread_id);
 
@@ -103,13 +102,14 @@ void generateSaw(unsigned int freq, short *samples, int buf_size) {
 
     for (int i = previousLastFrameSaw; i < (buf_size + previousLastFrameSaw); ++i) {
         samples[i - previousLastFrameSaw] = (short) (32760 * (2 * ((float) freq / (float) SAMPLE_RATE * (float) i +
-                                             floor((float) freq / (float) SAMPLE_RATE * (float) i + 0.5))));
-    }
+                                                                   floor((float) freq / (float) SAMPLE_RATE *
+                                                                         (float) i + 0.5))));
 
-    if (lastFrameSaw % period == 0 && lastFrameSaw != 0){
-        lastFrameSaw = 0;
-    } else {
-        ++lastFrameSaw;
+        if (lastFrameSaw % period == 0 && lastFrameSaw != 0) {
+            lastFrameSaw = 0;
+        } else {
+            ++lastFrameSaw;
+        }
     }
 
 }
@@ -118,22 +118,8 @@ void generateSaw(unsigned int freq, short *samples, int buf_size) {
  *  Generate square wave from -32760 to 32760
  */
 void generateSquare(unsigned int freq, short *samples, int buf_size) {
-    static short lastFrameSquare = 0;
-    int previousLastFrameSquare = lastFrameSquare;
-    int period = SAMPLE_RATE / freq;
-
-    int N = period / 2;
-    int sign = -1;
-    for (int i = previousLastFrameSquare; i < (buf_size + previousLastFrameSquare); ++i) {
-        if (i % N == 0) sign = -sign;
-        samples[i - previousLastFrameSquare] = (short) (32760 * sign);
-
-        if (lastFrameSquare % period == 0 && lastFrameSquare != 0){
-            lastFrameSquare = 0;
-        } else {
-            ++lastFrameSquare;
-        }
-    }
+    generateSin(freq, samples, buf_size);
+    for (int i = 0; i < buf_size; i++) samples[i] = samples[i] > 0 ? 32760 : -32760;
 }
 
 /*
@@ -144,9 +130,10 @@ void generateTriangle(unsigned int freq, short *samples, int buf_size) {
     int previousLastTriangle = lastFrameTriangle;
     int period = SAMPLE_RATE / freq;
     for (int i = previousLastTriangle; i < (buf_size + previousLastTriangle); ++i) {
-        samples[i - previousLastTriangle] = (short) (4 * 32760 / period * abs((((i - period / 4) % period) + period) % period - period / 2) -
-                              32760);
-        if (lastFrameTriangle % period == 0 && lastFrameTriangle != 0){
+        samples[i - previousLastTriangle] = (short) (
+                4 * 32760 / period * abs((((i - period / 4) % period) + period) % period - period / 2) -
+                32760);
+        if (lastFrameTriangle % period == 0 && lastFrameTriangle != 0) {
             lastFrameTriangle = 0;
         } else {
             ++lastFrameTriangle;
