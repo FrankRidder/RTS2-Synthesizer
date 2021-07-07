@@ -106,22 +106,37 @@ void createThreads() {
     printf("Creating keyboard thread.. \r\n");
     // Create threads
     int thread_id = 0;
-    pthread_create(&threads[thread_id++], &tattr, KeyboardMonitor,  (void*)oscillators);
+    int err = pthread_create(&threads[thread_id++], &tattr, KeyboardMonitor,  (void*)oscillators);
+    if (err){
+        printf("Error when creating thread: %d",err);
+    }
 
     printf("Creating multiple oscillators, filters and volume threads.. \r\n");
     //static oscThreads[]
     for (int i = 0; i < NUM_OSCS; i++)
     {
         printf("Creating thread 1, %d \r\n", i);
-        pthread_create(&threads[thread_id++], &tattr, oscillatorThread, (void*)&arg_oscillator[i]);
+        err = pthread_create(&threads[thread_id++], &tattr, oscillatorThread, (void*)&arg_oscillator[i]);
+        if (err){
+            printf("Error when creating thread: %d",err);
+        }
         printf("Creating thread 2, %d \r\n", i);
-        pthread_create(&threads[thread_id++], &tattr, filterThread,     (void*)&arg_filter[i]);
+        err = pthread_create(&threads[thread_id++], &tattr, filterThread,     (void*)&arg_filter[i]);
+        if (err){
+            printf("Error when creating thread: %d",err);
+        }
         printf("Creating thread 3, %d \r\n", i);
-        pthread_create(&threads[thread_id++], &tattr, volumeThread,     (void*)&arg_volume[i]);
+        err = pthread_create(&threads[thread_id++], &tattr, volumeThread,     (void*)&arg_volume[i]);
+        if (err){
+            printf("Error when creating thread: %d",err);
+        }
     }
 
     printf("Creating audio thread.. \r\n");
-    pthread_create(&threads[thread_id++], &tattr, audioThread,      (void*)&arg_audio);
+    err = pthread_create(&threads[thread_id++], &tattr, audioThread,      (void*)&arg_audio);
+    if (err){
+        printf("Error when creating thread: %d",err);
+    }
     
 }
 

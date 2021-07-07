@@ -236,7 +236,7 @@ TASK KeyboardMonitor(void *arg) {
                 }
             }
         
-            printInformation(oscs);
+            //printInformation(oscs);
         }
         
     }
