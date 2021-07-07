@@ -19,8 +19,7 @@ TASK oscillatorThread(void *arg) {
          * ================ Consume ====================
          */
         static int kickstart[NUM_OSCS];
-        if (kickstart[buffer->thread_id] != 0)
-        {
+        if (kickstart[buffer->thread_id] != 0) {
             pthread_mutex_lock(&buffer->input->mutex);
             while (buffer->input->len == 0 && !end_tasks) { // empty
                 // wait for new items to be appended to the buffer
@@ -40,7 +39,7 @@ TASK oscillatorThread(void *arg) {
             //printf("Status osc: %d\n", status);
         }
 
-        if (buffer->osc->pitch == 0) 
+        if (buffer->osc->pitch == 0)
             for (int i = 0; i < SAMPLES_PER_BUFFER; i++) buffer->output->buf[i] = 0;
         else if (buffer->osc->waveform == SIN) 
             generateSin(buffer->thread_id, buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
@@ -57,7 +56,7 @@ TASK oscillatorThread(void *arg) {
         pthread_cond_signal(&buffer->output->can_consume);
         pthread_mutex_unlock(&buffer->output->mutex);
 
-                
+
         //printf("osc thread ran %d\n", buffer->osc->pitch);
         //printf("Osc thread %d started test\n", buffer->thread_id);
 
