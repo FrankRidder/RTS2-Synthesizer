@@ -6,4 +6,5 @@ extern void al_init();
 extern void al_exit();
 extern void playInLoop(int source, int frequency);
 extern void stopPlaying(int source);
+TASK audioThread(void* arg);
 #endif

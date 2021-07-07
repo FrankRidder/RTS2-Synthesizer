@@ -109,12 +109,12 @@ BWBandPass* create_bw_band_pass_filter(int order, FTR_PRECISION s, FTR_PRECISION
     int i;
     for(i=0; i<filter->n; ++i){
         r = SIN(M_PI*(2.0*i+1.0)/(4.0*filter->n));
-        s = b2 + 2.0*b*r + 1.0;
+        s = b2 + 2.0f*b*r + 1.0f;
         filter->A[i] = b2/s;
-        filter->d1[i] = 4.0*a*(1.0+b*r)/s;
-        filter->d2[i] = 2.0*(b2-2.0*a2-1.0)/s;
-        filter->d3[i] = 4.0*a*(1.0-b*r)/s;
-        filter->d4[i] = -(b2 - 2.0*b*r + 1.0)/s;
+        filter->d1[i] = 4.0f*a*(1.0f+b*r)/s;
+        filter->d2[i] = 2.0f*(b2-2.0f*a2-1.0f)/s;
+        filter->d3[i] = 4.0f*a*(1.0f-b*r)/s;
+        filter->d4[i] = -(b2 - 2.0f*b*r + 1.0f)/s;
     }
     return filter;
 }
@@ -303,6 +303,23 @@ CHEBandStop* create_che_band_stop_filter(int n, FTR_PRECISION epsilon, FTR_PRECI
     return filter;
 }
 
+void change_bw_low_pass(BWLowPass* filter, FTR_PRECISION s, FTR_PRECISION f)
+{
+    FTR_PRECISION a = TAN(M_PI * f/s);
+    FTR_PRECISION a2 = a * a;
+    FTR_PRECISION r;
+    
+    int i;
+    
+    for(i=0; i < filter -> n; ++i){
+        r = SIN(M_PI*(2.0*i+1.0)/(4.0*filter -> n));
+        s = a2 + 2.0f*a*r + 1.0f;
+        filter -> A[i] = a2/s;
+        filter -> d1[i] = 2.0f*(1-a2)/s;
+        filter -> d2[i] = -(a2 - 2.0f*a*r + 1.0f)/s;
+    }
+}
+
 void free_bw_low_pass(BWLowPass* filter){
     free(filter -> A);
     free(filter -> d1);
@@ -418,7 +435,7 @@ FTR_PRECISION bw_band_pass(BWBandPass* filter, FTR_PRECISION x){
     int i;
     for(i=0; i<filter->n; ++i){
         filter->w0[i] = filter->d1[i]*filter->w1[i] + filter->d2[i]*filter->w2[i]+ filter->d3[i]*filter->w3[i]+ filter->d4[i]*filter->w4[i] + x;
-        x = filter->A[i]*(filter->w0[i] - 2.0*filter->w2[i] + filter->w4[i]);
+        x = filter->A[i]*(filter->w0[i] - 2.0f*filter->w2[i] + filter->w4[i]);
         filter->w4[i] = filter->w3[i];
         filter->w3[i] = filter->w2[i];
         filter->w2[i] = filter->w1[i];
@@ -492,7 +509,7 @@ FTR_PRECISION softmax(FTR_PRECISION* data, int size, int target_ind){
     return data[target_ind]/sum;
 }
 
-static const FTR_PRECISION SPIKE_KERNEL[] = {-1.0, 2.0, -1.0};
+static const FTR_PRECISION SPIKE_KERNEL[] = {-1.0f, 2.0f, -1.0f};
 void spike_filter_upward(FTR_PRECISION * input, int size, FTR_PRECISION * output, FTR_PRECISION strength){
     FTR_PRECISION mean = 0.0;
     FTR_PRECISION std = 0.0;

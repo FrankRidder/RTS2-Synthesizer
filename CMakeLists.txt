@@ -9,6 +9,7 @@ file(GLOB Synth_SRC
 )
 
 add_executable(RTS_Synthesizer ${Synth_SRC})
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

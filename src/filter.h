@@ -126,6 +126,7 @@ CHEHighPass* create_che_high_pass_filter(int order, FTR_PRECISION epsilon, FTR_P
 CHEBandPass* create_che_band_pass_filter(int order, FTR_PRECISION epsilon, FTR_PRECISION sampling_frequency, FTR_PRECISION lower_half_power_frequency, FTR_PRECISION upper_half_power_frequency);
 CHEBandStop* create_che_band_stop_filter(int order, FTR_PRECISION epsilon, FTR_PRECISION sampling_frequency, FTR_PRECISION lower_half_power_frequency, FTR_PRECISION upper_half_power_frequency);
 
+void change_bw_low_pass(BWLowPass* filter, FTR_PRECISION s, FTR_PRECISION f);
 
 void free_bw_low_pass(BWLowPass* filter);
 void free_bw_high_pass(BWHighPass* filter);
