@@ -14,7 +14,7 @@
 #include "filter.h"
 
 
-#define  NBUFFERS 6
+#define  NBUFFERS 8
 
 ALCdevice *openal_output_device;
 ALCcontext *openal_output_context;
@@ -63,14 +63,15 @@ void al_init() {
             al_check_error("alBufferData");
             // Queue the buffer
             alSourceQueueBuffers(streaming_source[i], 1, &internal_buffer[i][j]);
-            al_check_error("alQueueData");               
+            al_check_error("alQueueData");
+            ALint sState = 0;
+            alGetSourcei(streaming_source[i], AL_SOURCE_STATE, &sState);
+            if (sState != AL_PLAYING)
+            {
+                alSourcePlay(streaming_source[i]);
+            }
         }
-        ALint sState = 0;
-        alGetSourcei(streaming_source[i], AL_SOURCE_STATE, &sState);   
-        if (sState != AL_PLAYING) 
-        {
-            alSourcePlay(streaming_source[i]);
-        }
+
     }
 }
 
