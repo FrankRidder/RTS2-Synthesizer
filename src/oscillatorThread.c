@@ -43,13 +43,13 @@ TASK oscillatorThread(void *arg) {
         if (buffer->osc->pitch == 0) 
             for (int i = 0; i < SAMPLES_PER_BUFFER; i++) buffer->output->buf[i] = 0;
         else if (buffer->osc->waveform == SIN) 
-            generateSin(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
+            generateSin(buffer->thread_id, buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
         else if (buffer->osc->waveform == SQUARE)
-            generateSquare(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
+            generateSquare(buffer->thread_id, buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
         else if (buffer->osc->waveform == SAW) 
-            generateSaw(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
+            generateSaw(buffer->thread_id, buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
         else if (buffer->osc->waveform == TRIANGLE)
-            generateTriangle(buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
+            generateTriangle(buffer->thread_id, buffer->osc->pitch, buffer->output->buf, SAMPLES_PER_BUFFER);
 
         buffer->output->len = 1;
 
@@ -80,77 +80,63 @@ TASK oscillatorThread(void *arg) {
 /*
  *  Generate sin wave from -32760 to 32760
  */
-void generateSin(unsigned int freq, short *samples, int buf_size) {
-    static float seconds_offset = 0.0f;
-    float pitch = (float) freq;
+void generateSin(int tid, unsigned int freq, short *samples, int buf_size) {
+    float pitch  = (float) freq;
+    float period = 1.0f / pitch;
     float radians_per_second = (float) (pitch * 2.0f * M_PI);
     float seconds_per_frame = 1.0f / (float) SAMPLE_RATE;
 
+    static float t[NUM_OSCS];
     for (int frame = 0; frame < buf_size; frame += 1) {
-        samples[frame] = (short) (32760 *
-                                  sin((seconds_offset + (float) frame * seconds_per_frame) * radians_per_second));
+        samples[frame] = (short) (32760 * sin(radians_per_second * t[tid]));
+        t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
     }
-    seconds_offset = fmodf(seconds_offset + seconds_per_frame * (float) buf_size, 1.0f);
 }
 
 /*
  *  Generate saw wave from -32760 to 32760
  */
-void generateSaw(unsigned int freq, short *samples, int buf_size) {
-    static short lastFrameSaw = 0;
-    int previousLastFrameSaw = lastFrameSaw;
-    int period = SAMPLE_RATE / freq;
+void generateSaw(int tid, unsigned int freq, short *samples, int buf_size) {
+    float seconds_per_frame = 1.0f / (float) SAMPLE_RATE;
+    float pitch  = (float) freq;
+    float period = 1.0f / pitch;
 
-    for (int i = previousLastFrameSaw; i < (buf_size + previousLastFrameSaw); ++i) {
-        samples[i - previousLastFrameSaw] = (short) (32760 * (2 * ((float) freq / (float) SAMPLE_RATE * (float) i +
-                                             floor((float) freq / (float) SAMPLE_RATE * (float) i + 0.5))));
+    static float t[NUM_OSCS];
+    for (int i = 0; i < buf_size; i++)
+    {
+        samples[i] = (short) (32760 * 2 * ((t[tid]/period) - floorf(0.5 + t[tid]/period)) );
+        t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
     }
-
-    if (lastFrameSaw % period == 0 && lastFrameSaw != 0){
-        lastFrameSaw = 0;
-    } else {
-        ++lastFrameSaw;
-    }
-
 }
 
 /*
  *  Generate square wave from -32760 to 32760
  */
-void generateSquare(unsigned int freq, short *samples, int buf_size) {
-    static short lastFrameSquare = 0;
-    int previousLastFrameSquare = lastFrameSquare;
-    int period = SAMPLE_RATE / freq;
-
-    int N = period / 2;
-    int sign = -1;
-    for (int i = previousLastFrameSquare; i < (buf_size + previousLastFrameSquare); ++i) {
-        if (i % N == 0) sign = -sign;
-        samples[i - previousLastFrameSquare] = (short) (32760 * sign);
-
-        if (lastFrameSquare % period == 0 && lastFrameSquare != 0){
-            lastFrameSquare = 0;
-        } else {
-            ++lastFrameSquare;
-        }
+void generateSquare(int tid, unsigned int freq, short *samples, int buf_size) {
+    float seconds_per_frame = 1.0f / (float) SAMPLE_RATE;
+    float pitch  = (float) freq;
+    float period = 1.0f / pitch;
+    
+    static float t[NUM_OSCS];
+    for (int i = 0; i < buf_size; i++)
+    {
+        samples[i] = (short) ( 32760 * 2 * (2*floorf(pitch*t[tid]) - floor(2*pitch*t[tid])) + 32760 );
+        t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
     }
 }
 
 /*
  *  Generate saw wave from -32760 to 32760
  */
-void generateTriangle(unsigned int freq, short *samples, int buf_size) {
-    static int lastFrameTriangle = 0;
-    int previousLastTriangle = lastFrameTriangle;
-    int period = SAMPLE_RATE / freq;
-    for (int i = previousLastTriangle; i < (buf_size + previousLastTriangle); ++i) {
-        samples[i - previousLastTriangle] = (short) (4 * 32760 / period * abs((((i - period / 4) % period) + period) % period - period / 2) -
-                              32760);
-        if (lastFrameTriangle % period == 0 && lastFrameTriangle != 0){
-            lastFrameTriangle = 0;
-        } else {
-            ++lastFrameTriangle;
-        }
+void generateTriangle(int tid, unsigned int freq, short *samples, int buf_size) {
+    float seconds_per_frame = 1.0f / (float) SAMPLE_RATE;
+    float pitch  = (float) freq;
+    float period = 1.0f / pitch;
 
+    static float t[NUM_OSCS];
+    for (int i = 0; i < buf_size; i++)
+    {
+        samples[i] = (short) (2 * abs(32760 * 2 * ((t[tid]/period) - floorf(0.5 + t[tid]/period))) - 32760);
+        t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
     }
 }
