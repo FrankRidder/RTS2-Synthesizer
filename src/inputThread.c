@@ -109,7 +109,9 @@ TASK KeyboardMonitor(void *arg) {
 
     //----- READ KEYBOARD EVENTS -----
     while (!end_tasks) {
+        printf("reading input");
         ReadDevice = (int) read(FileDevice, InputEvent, sizeof(struct input_event) * 64);
+        printf("done reading input");
         //printf("number of events: %d \r\n", ReadDevice / sizeof(struct input_event));
         if (ReadDevice < (int) sizeof(struct input_event)) {
             //This should never happen
@@ -234,7 +236,7 @@ TASK KeyboardMonitor(void *arg) {
                 }
             }
         
-            //printInformation(oscs);
+            printInformation(oscs);
         }
         
     }
