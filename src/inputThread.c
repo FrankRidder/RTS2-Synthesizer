@@ -105,9 +105,6 @@ TASK KeyboardMonitor(void *arg) {
 
     struct mq_attr msgq_attr;
 
-    // Detach the thread
-    pthread_detach(pthread_self());
-
     //----- READ KEYBOARD EVENTS -----
     while (!end_tasks) {
         ReadDevice = (int) read(FileDevice, InputEvent, sizeof(struct input_event) * 64);

@@ -19,9 +19,6 @@ TASK volumeThread(void *arg) {
     short *samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
     float adsr_volume;
 
-    // Detach the thread
-    pthread_detach(pthread_self());
-
     while (!end_tasks) {
         /*
          * ================ Consume ====================

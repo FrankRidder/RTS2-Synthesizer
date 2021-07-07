@@ -123,9 +123,6 @@ TASK audioThread(void* arg)
 
     short sample_buffers[NUM_OSCS][SAMPLES_PER_BUFFER];
 
-    // Detach the thread
-    pthread_detach(pthread_self());
-
     while (!end_tasks)
     {
         /*
