@@ -1,16 +1,8 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <errno.h>
-#include <time.h>
-#include <string.h>
 #include <pthread.h>
 #include <stdlib.h>
 
 #include "oscillatorThread.h"
 #include "shared.h"
-
-#include <time.h>
-
 TASK oscillatorThread(void *arg) {
     arguments_t *buffer = (arguments_t *) arg;
 

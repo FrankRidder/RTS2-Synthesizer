@@ -157,11 +157,11 @@ TASK KeyboardMonitor(void *arg) {
                                 break;
 
                             case KEY_MINUS:
-                                if (global_volume > 0.0) global_volume -= 0.05;
+                                if (global_volume > 0.0) global_volume -= 0.05f;
                                 break;
 
                             case KEY_EQUAL:
-                                if (global_volume < 1.0) global_volume += 0.05;
+                                if (global_volume < 1.0) global_volume += 0.05f;
                                 break;
 
                             case KEY_SPACE:
@@ -236,7 +236,7 @@ TASK KeyboardMonitor(void *arg) {
                 }
             }
         
-            //printInformation(oscs);
+            printInformation(oscs);
         }
         
     }
