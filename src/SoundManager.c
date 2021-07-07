@@ -8,7 +8,6 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-#include <assert.h>
 
 /* For testing */
 #include "oscillatorThread.h"
@@ -121,11 +120,9 @@ TASK audioThread(void* arg)
     static short * samples;
     samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
 
+
+
     short sample_buffers[NUM_OSCS][SAMPLES_PER_BUFFER];
-
-    // Detach the thread
-    pthread_detach(pthread_self());
-
     while (!end_tasks)
     {
         /*
@@ -149,7 +146,22 @@ TASK audioThread(void* arg)
             //printf("Pipeline %d done\n", buffer->thread_id);
         }
 
-
+        /*
+         * ================ Produce ====================
+         */
+        for (int i = 0; i < NUM_OSCS; i++)
+        {
+            pthread_mutex_lock(&buffer->output[i]->mutex);
+            if (buffer->output[i]->len == 1) { // full
+                // wait until some elements are consumed
+                int status = pthread_cond_wait(&buffer->output[i]->can_produce, &buffer->output[i]->mutex);
+                //printf("Status volume: %d\n", status);
+            }
+            buffer->output[i]->len = 1;
+            // signal the fact that new items may be consumed
+            pthread_cond_signal(&buffer->output[i]->can_consume);
+            pthread_mutex_unlock(&buffer->output[i]->mutex);
+        }
 
         static ALint availBuffers=0;
         ALuint  uiBuffer;
@@ -178,41 +190,16 @@ TASK audioThread(void* arg)
                 availBuffers--;
                 //usleep(23*1000);
             }
-            
+
             al_check_error("alGetQueuStatus");
             ALint sState = 0;
             alGetSourcei(streaming_source[i], AL_SOURCE_STATE, &sState);
-            if (sState != AL_PLAYING) 
+            if (sState != AL_PLAYING)
             {
                 alSourcePlay(streaming_source[i]);
-            }      
-        }
-
-        /*
-         * ================ Produce ====================
-         */
-        for (int i = 0; i < NUM_OSCS; i++)
-        {
-            pthread_mutex_lock(&buffer->output[i]->mutex);
-            if (buffer->output[i]->len == 1) { // full
-                // wait until some elements are consumed
-                int status = pthread_cond_wait(&buffer->output[i]->can_produce, &buffer->output[i]->mutex);
-                //printf("Status volume: %d\n", status);
+                //printf("Stopped playing\n");
             }
-            buffer->output[i]->len = 1;
-            // signal the fact that new items may be consumed
-            pthread_cond_signal(&buffer->output[i]->can_consume);
-            pthread_mutex_unlock(&buffer->output[i]->mutex);
         }
-        static int counter = 0;
-        counter++;
-
-        clock_gettime(CLOCK_MONOTONIC, &finish);
-        double elapsed = 0.0;
-        
-        elapsed = (finish.tv_sec - start.tv_sec);
-        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
-        elapsed *= 1000;
         //printf("elapsed: %lf\n", elapsed);
         
         // static int prot = 0;
