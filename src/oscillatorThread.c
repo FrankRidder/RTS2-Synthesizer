@@ -6,6 +6,9 @@
 TASK oscillatorThread(void *arg) {
     arguments_t *buffer = (arguments_t *) arg;
 
+    // Detach the thread
+    pthread_detach(pthread_self());
+
     while (!end_tasks) {
         /*
          * ================ Consume ====================

@@ -1,6 +1,5 @@
 #include "inputThread.h"
 #include <mqueue.h>
-#include <time.h>
 #include <string.h>
 #include <pthread.h>
 #include <math.h>
@@ -8,7 +7,6 @@
 //test
 #include "SoundManager.h"
 #include "filterThread.h"
-#include <errno.h>
 
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
@@ -106,6 +104,9 @@ TASK KeyboardMonitor(void *arg) {
     int Index;
 
     struct mq_attr msgq_attr;
+
+    // Detach the thread
+    pthread_detach(pthread_self());
 
     //----- READ KEYBOARD EVENTS -----
     while (!end_tasks) {

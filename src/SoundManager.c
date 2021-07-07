@@ -121,9 +121,11 @@ TASK audioThread(void* arg)
     static short * samples;
     samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
 
-
-
     short sample_buffers[NUM_OSCS][SAMPLES_PER_BUFFER];
+
+    // Detach the thread
+    pthread_detach(pthread_self());
+
     while (!end_tasks)
     {
         /*
