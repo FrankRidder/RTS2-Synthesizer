@@ -120,9 +120,11 @@ TASK audioThread(void* arg)
     static short * samples;
     samples = malloc(sizeof(short) * SAMPLES_PER_BUFFER);
 
-
-
     short sample_buffers[NUM_OSCS][SAMPLES_PER_BUFFER];
+
+    // Detach the thread
+    pthread_detach(pthread_self());
+
     while (!end_tasks)
     {
         /*
@@ -146,22 +148,7 @@ TASK audioThread(void* arg)
             //printf("Pipeline %d done\n", buffer->thread_id);
         }
 
-        /*
-         * ================ Produce ====================
-         */
-        for (int i = 0; i < NUM_OSCS; i++)
-        {
-            pthread_mutex_lock(&buffer->output[i]->mutex);
-            if (buffer->output[i]->len == 1) { // full
-                // wait until some elements are consumed
-                int status = pthread_cond_wait(&buffer->output[i]->can_produce, &buffer->output[i]->mutex);
-                //printf("Status volume: %d\n", status);
-            }
-            buffer->output[i]->len = 1;
-            // signal the fact that new items may be consumed
-            pthread_cond_signal(&buffer->output[i]->can_consume);
-            pthread_mutex_unlock(&buffer->output[i]->mutex);
-        }
+
 
         static ALint availBuffers=0;
         ALuint  uiBuffer;
@@ -197,9 +184,26 @@ TASK audioThread(void* arg)
             if (sState != AL_PLAYING)
             {
                 alSourcePlay(streaming_source[i]);
-                //printf("Stopped playing\n");
             }
         }
+
+        /*
+         * ================ Produce ====================
+         */
+        for (int i = 0; i < NUM_OSCS; i++)
+        {
+            pthread_mutex_lock(&buffer->output[i]->mutex);
+            if (buffer->output[i]->len == 1) { // full
+                // wait until some elements are consumed
+                int status = pthread_cond_wait(&buffer->output[i]->can_produce, &buffer->output[i]->mutex);
+                //printf("Status volume: %d\n", status);
+            }
+            buffer->output[i]->len = 1;
+            // signal the fact that new items may be consumed
+            pthread_cond_signal(&buffer->output[i]->can_consume);
+            pthread_mutex_unlock(&buffer->output[i]->mutex);
+        }
+
         //printf("elapsed: %lf\n", elapsed);
         
         // static int prot = 0;
