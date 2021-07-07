@@ -81,7 +81,6 @@ void generateSin(int tid, unsigned int freq, short *samples, int buf_size) {
         samples[frame] = (short) (32760 * sin(radians_per_second * t[tid]));
         t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
     }
-    seconds_offset = fmod(seconds_offset + seconds_per_frame * frame_count, 1.0);
 }
 /*
  *  Generate saw wave from -32760 to 32760
