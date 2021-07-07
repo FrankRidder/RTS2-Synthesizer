@@ -14,7 +14,7 @@
 
 #include "shared.h"
 
-#define NTHREADS 20
+#define NTHREADS 11
 
 // pthread variables
 static pthread_t threads[NTHREADS];
@@ -58,7 +58,7 @@ void createThreads() {
     /* setting the new scheduling param */
     pthread_attr_setschedparam(&tattr, &param);
         
-    printf("Creating threads .. \r\n");
+    printf("Creating buffers .. \r\n");
 
     //static buffer_t buffer_from_keyboard_to_osc = BUFFER_INITIALIZER;
     static buffer_t buf_osc_to_filter[NUM_OSCS];
@@ -66,6 +66,7 @@ void createThreads() {
     static buffer_t buf_volume_to_audio[NUM_OSCS];
     static buffer_t buf_audio_to_osc[NUM_OSCS];
 
+    printf("Init buffers .. \r\n");
     for (int i = 0; i < NUM_OSCS; i++)
     {
         oscillators[i]          = OSCILLATOR_INITIALIZER;
@@ -80,6 +81,7 @@ void createThreads() {
     static arguments_t arg_volume[NUM_OSCS];
     static audio_arguments_t arg_audio;
 
+    printf("Linking buffers .. \r\n");
     for (int i = 0; i < NUM_OSCS; i++)
     {
         arg_oscillator[i].input  = &buf_audio_to_osc[i];
@@ -101,11 +103,12 @@ void createThreads() {
         arg_audio.output[i]      = &buf_audio_to_osc[i];
         arg_audio.thread_id      = i;
     }
-    
+    printf("Creating keyboard thread.. \r\n");
     // Create threads
     int thread_id = 0;
-    pthread_create(&threads[thread_id++], &tattr, KeyboardMonitor,  (void*)oscillators);  
+    pthread_create(&threads[thread_id++], &tattr, KeyboardMonitor,  (void*)oscillators);
 
+    printf("Creating multiple oscillators, filters and volume threads.. \r\n");
     //static oscThreads[]
     for (int i = 0; i < NUM_OSCS; i++)
     {
@@ -113,6 +116,8 @@ void createThreads() {
         pthread_create(&threads[thread_id++], &tattr, filterThread,     (void*)&arg_filter[i]);
         pthread_create(&threads[thread_id++], &tattr, volumeThread,     (void*)&arg_volume[i]);
     }
+
+    printf("Creating audio thread.. \r\n");
     pthread_create(&threads[thread_id++], &tattr, audioThread,      (void*)&arg_audio);
     
 }
