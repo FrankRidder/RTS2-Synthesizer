@@ -112,8 +112,11 @@ void createThreads() {
     //static oscThreads[]
     for (int i = 0; i < NUM_OSCS; i++)
     {
+        printf("Creating thread 1, %d \r\n", i);
         pthread_create(&threads[thread_id++], &tattr, oscillatorThread, (void*)&arg_oscillator[i]);
+        printf("Creating thread 2, %d \r\n", i);
         pthread_create(&threads[thread_id++], &tattr, filterThread,     (void*)&arg_filter[i]);
+        printf("Creating thread 3, %d \r\n", i);
         pthread_create(&threads[thread_id++], &tattr, volumeThread,     (void*)&arg_volume[i]);
     }
 
