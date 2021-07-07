@@ -49,7 +49,7 @@ TASK filterThread(void* arg)
         pthread_mutex_lock(&buffer->output->mutex);
         if (buffer->output->len == 1) { // full
             // wait until some elements are consumed
-            int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
+            pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
             //printf("Status filter: %d\n", status);
         }
         for (int i = 0; i < SAMPLES_PER_BUFFER; i++)

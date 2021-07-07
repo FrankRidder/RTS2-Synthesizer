@@ -1,8 +1,8 @@
 #include <pthread.h>
-#include <stdlib.h>
 
 #include "oscillatorThread.h"
 #include "shared.h"
+
 TASK oscillatorThread(void *arg) {
     arguments_t *buffer = (arguments_t *) arg;
 
@@ -76,7 +76,6 @@ TASK oscillatorThread(void *arg) {
  */
 void generateSin(int tid, unsigned int freq, short *samples, int buf_size) {
     float pitch  = (float) freq;
-    float period = 1.0f / pitch;
     float radians_per_second = (float) (pitch * 2.0f * M_PI);
     float seconds_per_frame = 1.0f / (float) SAMPLE_RATE;
 
@@ -98,9 +97,10 @@ void generateSaw(int tid, unsigned int freq, short *samples, int buf_size) {
     static float t[NUM_OSCS];
     for (int i = 0; i < buf_size; i++)
     {
-        samples[i] = (short) (32760 * 2 * ((t[tid]/period) - floorf(0.5 + t[tid]/period)) );
-        t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
+        samples[i] = (short) (32760 * 2 * ((t[tid]/period) - floorf(0.5f + t[tid]/period)) );
+        t[tid] += seconds_per_frame;
     }
+    t[tid] = fmodf(t[tid], 1.0f);
 }
 
 /*
@@ -109,14 +109,14 @@ void generateSaw(int tid, unsigned int freq, short *samples, int buf_size) {
 void generateSquare(int tid, unsigned int freq, short *samples, int buf_size) {
     float seconds_per_frame = 1.0f / (float) SAMPLE_RATE;
     float pitch  = (float) freq;
-    float period = 1.0f / pitch;
     
     static float t[NUM_OSCS];
     for (int i = 0; i < buf_size; i++)
     {
-        samples[i] = (short) ( 32760 * 2 * (2*floorf(pitch*t[tid]) - floor(2*pitch*t[tid])) + 32760 );
-        t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
+        samples[i] = (short) ( 32760 * 2 * (2*floorf(pitch*t[tid]) - floorf(2*pitch*t[tid])) + 32760 );
+        t[tid] += seconds_per_frame;
     }
+    t[tid] = fmodf(t[tid], 1.0f);
 }
 
 /*
@@ -130,7 +130,8 @@ void generateTriangle(int tid, unsigned int freq, short *samples, int buf_size) 
     static float t[NUM_OSCS];
     for (int i = 0; i < buf_size; i++)
     {
-        samples[i] = (short) (2 * abs(32760 * 2 * ((t[tid]/period) - floorf(0.5 + t[tid]/period))) - 32760);
-        t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
+        samples[i] = (short) (2 * fabsf(32760 * 2 * ((t[tid]/period) - floorf(0.5f + t[tid]/period))) - 32760);
+        t[tid] += seconds_per_frame;
     }
+    t[tid] = fmodf(t[tid], 1.0f);
 }

@@ -72,7 +72,7 @@ int KeyboardSetup(TASK pathname) {
 
 void printInformation(oscillators_t *oscs)  
 {
-    const static char *waves[4] = {"sin", "square", "saw", "triangle"};
+    static const char *waves[4] = {"sin", "square", "saw", "triangle"};
 
     printf("\e[1;1H\e[2J"); // Clear terminal
     printf(KCYN"=============================================================\n"KNRM);
@@ -110,9 +110,8 @@ TASK KeyboardMonitor(void *arg) {
 
     //----- READ KEYBOARD EVENTS -----
     while (!end_tasks) {
-        printf("reading input");
         ReadDevice = (int) read(FileDevice, InputEvent, sizeof(struct input_event) * 64);
-        printf("done reading input");
+
         //printf("number of events: %d \r\n", ReadDevice / sizeof(struct input_event));
         if (ReadDevice < (int) sizeof(struct input_event)) {
             //This should never happen
