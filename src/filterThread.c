@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>    // gives malloc
+#include <string.h>
 
 TASK filterThread(void* arg)
 {
@@ -22,9 +23,8 @@ TASK filterThread(void* arg)
             pthread_cond_wait(&buffer->input->can_consume, &buffer->input->mutex);
         }
         buffer->input->len = 0;
-        for(int i = 0; i < SAMPLES_PER_BUFFER; i++) {
-            samples[i] = buffer->input->buf[i];
-        }
+
+        memcpy(samples, buffer->input->buf, SAMPLES_PER_BUFFER);
         // signal the fact that new items may be produced
         pthread_cond_signal(&buffer->input->can_produce);
         pthread_mutex_unlock(&buffer->input->mutex);
@@ -49,10 +49,8 @@ TASK filterThread(void* arg)
             pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
             //printf("Status filter: %d\n", status);
         }
-        for (int i = 0; i < SAMPLES_PER_BUFFER; i++)
-        {
-            buffer->output->buf[i] = samples[i];
-        }
+
+        memcpy(buffer->output->buf, samples, SAMPLES_PER_BUFFER);
         buffer->output->len = 1;
 
         // signal the fact that new items may be consumed
@@ -60,11 +58,6 @@ TASK filterThread(void* arg)
         pthread_mutex_unlock(&buffer->output->mutex);
         //printf("filter thread ran\n");
 
-        
-
-        // for(int i = 1; i < buf_size; i++) {
-        //     filtered_samples[i] = bw_low_pass(filter_bw, samples[i] * 10);
-        // }
     }
     free_bw_low_pass(filter_bw);
 

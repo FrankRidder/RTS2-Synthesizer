@@ -7,12 +7,12 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <string.h>
 
 
 /* For testing */
 #include "oscillatorThread.h"
 #include "filter.h"
-
 
 #define  NBUFFERS 8
 
@@ -136,9 +136,9 @@ TASK audioThread(void* arg)
                 pthread_cond_wait(&buffer->input[i]->can_consume, &buffer->input[i]->mutex);
             }
             --buffer->input[i]->len;
-            for(int j = 0; j < SAMPLES_PER_BUFFER; j++) {
-                sample_buffers[i][j] = buffer->input[i]->buf[j];
-            }
+
+            memcpy(sample_buffers[i], buffer->input[i]->buf, SAMPLES_PER_BUFFER);
+
 
             // signal the fact that new items may be produced
             pthread_cond_signal(&buffer->input[i]->can_produce);
@@ -155,7 +155,7 @@ TASK audioThread(void* arg)
             do {
                 alGetSourcei(streaming_source[i],AL_BUFFERS_PROCESSED,&availBuffers);
                 al_check_error("alStream");
-                usleep(10);
+                usleep(50);
             } while (availBuffers == 0 && !end_tasks);
             //printf("avail buffers %d\n", availBuffers);
 
@@ -173,7 +173,6 @@ TASK audioThread(void* arg)
                 al_check_error("alQueueData");
 
                 availBuffers--;
-                //usleep(23*1000);
             }
 
             al_check_error("alGetQueuStatus");
@@ -202,100 +201,7 @@ TASK audioThread(void* arg)
             pthread_mutex_unlock(&buffer->output[i]->mutex);
         }
 
-        //printf("elapsed: %lf\n", elapsed);
-        
-        // static int prot = 0;
-        // if (prot == 0) {
-        //     clock_gettime(CLOCK_MONOTONIC, &finish);
-        //     double elapsed;
-        //     elapsed = (finish.tv_sec - start.tv_sec);
-        //     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-        //     prot++;
-        //     printf("elapsed: %lf\n", elapsed);
-        // }    
-
-        //printf("audio thread ran\n");
-        
-        // clock_gettime(CLOCK_MONOTONIC, &finish);
-        // double elapsed;
-        // elapsed = (finish.tv_sec - start.tv_sec);
-        // elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0; //ns
-
-        // elapsed *= 1000; // From seconds to milliseconds
-        // printf("Executed at %lf\n", elapsed);
-        //clock_gettime(CLOCK_MONOTONIC, &start);
     }
     free(samples);
 }
 
-void playInLoop(int source, int frequency)
-{
-    // assert(source < NBUFFERS);
-
-    // //alGenSources(1, &streaming_source[source]);
-    // unsigned sample_rate = 44100;
-    // double my_pi = 3.14159;
-    // size_t buf_size = 1 * sample_rate;
-
-    // // allocate PCM audio buffer        
-    // short * samples = malloc(sizeof(short) * buf_size);
-    // short * filtered_samples = malloc(sizeof(short) * buf_size);
-    
-    // // for (int i = 0; i < buf_size; ++i) {
-    // //     samples[i] = 32760 * sin( (2.f * my_pi * frequency) / sample_rate * i );
-    // // }
-    // generateSaw(frequency, samples, buf_size);
-
-    // BWLowPass* filter_bw = create_bw_low_pass_filter(4, 44100, 2000);
-    // for(int i = 1; i < buf_size; i++) {
-    //     filtered_samples[i] = bw_low_pass(filter_bw, samples[i] * 10);
-    // }
-    // free_bw_low_pass(filter_bw);
-    // /* Simple low pass filter
-    //     float a = filter(50);
-    //     filtered_samples[0] = a * samples[0];
-    //     for(int i = 1; i < buf_size; i++) {
-    //         filtered_samples[i] = filtered_samples[i - 1] + (a*(samples[i] - filtered_samples[i - 1]));
-    //     }
-    // */
-
-    // alBufferData( internal_buffer[source], AL_FORMAT_MONO16, filtered_samples, buf_size, sample_rate);
-    // al_check_error("alBufferData");
-
-
-    // // Queue the buffer
-    // alSourceQueueBuffers(streaming_source[source],1,&internal_buffer[source]);
-
-    // free(samples);
-    // free(filtered_samples);
-
-    // // Restart the source if needed
-    // // (if we take too long and the queue dries up,
-    // //  the source stops playing).
-    // ALint sState=0;
-    // alGetSourcei(streaming_source[source],AL_SOURCE_STATE,&sState);
-    // if (sState!=AL_PLAYING) {
-    //     alSourcePlay(streaming_source[source]);
-    // }
-
-    // // // Turn on looping and attach buffer
-    // // alSourcei(streaming_source[source], AL_LOOPING, 1);
-    // // alSourcei(streaming_source[source], AL_BUFFER, internal_buffer[source]);
-
-    // // alSourcePlay(streaming_source[source]);
-}
-
-void stopPlaying(int source) {
-    ALenum errorCode = 0;
-
-    // Stop the source
-    alSourceStop(streaming_source[source]);
-    al_check_error("alSourceStop");
-
-    // Stop looping and detach buffer
-    alSourcei(streaming_source[source], AL_LOOPING, 0);
-    alSourcei(streaming_source[source], AL_BUFFER, 0),
-            al_check_error("alSourcei");
-
-    //printf("Deleting sources from %d\r\n", source);
-}

@@ -3,6 +3,7 @@
 #include "shared.h"
 #include <stdlib.h>    // gives malloc
 #include <stdio.h>
+#include <string.h>
 
 TASK volumeThread(void *arg) {
     arguments_t *buffer = (arguments_t *) arg;
@@ -29,9 +30,8 @@ TASK volumeThread(void *arg) {
             pthread_cond_wait(&buffer->input->can_consume, &buffer->input->mutex);
         }
         buffer->input->len = 0;
-        for (int i = 0; i < SAMPLES_PER_BUFFER; i++) {
-            samples[i] = buffer->input->buf[i];
-        }
+
+        memcpy(samples, buffer->input->buf, SAMPLES_PER_BUFFER);
         // signal the fact that new items may be produced
         pthread_cond_signal(&buffer->input->can_produce);
         pthread_mutex_unlock(&buffer->input->mutex);
@@ -58,9 +58,9 @@ TASK volumeThread(void *arg) {
             int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
             //printf("Status volume: %d\n", status);
         }
-        for (int i = 0; i < SAMPLES_PER_BUFFER; i++) {
-            buffer->output->buf[i] = samples[i];
-        }
+
+        memcpy(buffer->output->buf, samples, SAMPLES_PER_BUFFER);
+
         buffer->output->len = 1;
 
         // signal the fact that new items may be consumed
