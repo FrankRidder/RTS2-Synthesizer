@@ -79,8 +79,8 @@ void generateSin(int tid, unsigned int freq, short *samples, int buf_size) {
     static float t[NUM_OSCS];
     for (int frame = 0; frame < buf_size; frame += 1) {
         samples[frame] = (short) (32760 * sin(radians_per_second * t[tid]));
-        t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
     }
+    t[tid] = fmodf(t[tid] + seconds_per_frame, 1.0f);
 }
 
 /*
