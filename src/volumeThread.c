@@ -2,7 +2,6 @@
 #include "ADSR.h"
 #include "shared.h"
 #include <stdlib.h>    // gives malloc
-#include <stdio.h>
 #include <string.h>
 
 TASK volumeThread(void *arg) {
@@ -41,7 +40,6 @@ TASK volumeThread(void *arg) {
          */
 
         gate(adsr, buffer->osc->turnon);
-        //gate(adsr, true);
         for (int i = 1; i < SAMPLES_PER_BUFFER; i++) {
             adsr_volume = process(adsr);
             samples[i] *= global_volume * adsr_volume;
@@ -55,7 +53,7 @@ TASK volumeThread(void *arg) {
         pthread_mutex_lock(&buffer->output->mutex);
         if (buffer->output->len == 1) { // full
             // wait until some elements are consumed
-            int status = pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
+            pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
             //printf("Status volume: %d\n", status);
         }
 
@@ -66,12 +64,7 @@ TASK volumeThread(void *arg) {
         // signal the fact that new items may be consumed
         pthread_cond_signal(&buffer->output->can_consume);
         pthread_mutex_unlock(&buffer->output->mutex);
-        //printf("volume thread ran\n");
 
-
-        // for(int i = 1; i < buf_size; i++) {
-        //     sample[i] *= global_volume * process(adsr);
-        // }
     }
     free(adsr);
     return NULL;

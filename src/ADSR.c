@@ -21,9 +21,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <stdlib.h> 
-
- 
 
 ADSR* createADSR()
 {
@@ -39,11 +36,6 @@ ADSR* createADSR()
     
 	return ptr;
 }
-
-void destroyADSR() {
-
-}
-
 
 void setAttackRate(ADSR* ptr, float rate) {
     ptr->attackRate = rate;
@@ -64,7 +56,7 @@ void setReleaseRate(ADSR* ptr, float rate) {
 }
 
 float calcCoef(float rate, float targetRatio) {
-    return exp(-log((1.0 + targetRatio) / targetRatio) / rate);
+    return (float) exp(-log((1.0 + targetRatio) / targetRatio) / rate);
 }
 
 void setSustainLevel(ADSR* ptr, float level) {
@@ -128,16 +120,8 @@ void gate(ADSR* ptr, bool turnon) {
     }
 }
 
-int getState(ADSR* ptr) {
-    return ptr->state;
-}
-
 void reset(ADSR* ptr) {
 	ptr->gate = 0;
     ptr->state = env_idle;
     ptr->output = 0.0f;
-}
-
-float getOutput(ADSR* ptr) {
-	return ptr->output;
 }

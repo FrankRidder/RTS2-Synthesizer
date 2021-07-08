@@ -1,6 +1,5 @@
 #include "filterThread.h"
 #include "filter.h"
-#include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>    // gives malloc
 #include <string.h>

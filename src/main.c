@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <termios.h>
 #include <signal.h>
 
@@ -40,7 +39,6 @@ void initialiseTerminal() {
 }
 
 void createThreads() {
-    int status = 0;
     end_tasks = 0;
 
     // Shared variable initialising - TODO: need clean up

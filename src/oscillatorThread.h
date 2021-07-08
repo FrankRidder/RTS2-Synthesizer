@@ -28,4 +28,4 @@ void generateTriangle(int thread_id, unsigned int freq, short *samples, int buf_
 
 
 
-#endif
+#endif //WAVE_GEN

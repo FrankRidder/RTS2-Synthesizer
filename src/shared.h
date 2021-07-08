@@ -62,9 +62,6 @@ typedef struct {
     buffer_t *output[4];
     oscillators_t *osc;
     int thread_id;
-} audio_arguments_t; 
+} audio_arguments_t;
 
-
-struct timespec start, finish;
-
-#endif
+#endif //SHARED_H

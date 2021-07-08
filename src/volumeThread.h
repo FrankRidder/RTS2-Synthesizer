@@ -5,4 +5,4 @@
 
 TASK volumeThread(void* arg);
 
-#endif // VOLUME_THREAD_H
+#endif //VOLUME_THREAD_H

@@ -1,33 +1,27 @@
 #include "inputThread.h"
-#include <mqueue.h>
+
+#include <linux/input.h>
+
 #include <string.h>
-#include <pthread.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
 #include <math.h>
 
 //test
 #include "SoundManager.h"
-#include "filterThread.h"
 
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
 
 // Key notes
-#define NUM_NOTES 88
-#define OCTAVE(n) (((n)+9)/12)
-#define NOTENAME(n) (name[((n)+9)%12])
 #define FREQUENCY(n) ( pow( pow(2.,1./12.), (n)-49. ) * 440. + .5)
-
-const char *name[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
 // Terminal colors
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
-#define KYEL  "\x1B[33m"
-#define KBLU  "\x1B[34m"
-#define KMAG  "\x1B[35m"
 #define KCYN  "\x1B[36m"
-#define KWHT  "\x1B[37m"
 
 #define BOLDON  "\e[1m"
 #define BOLDOFF "\e[0m"
@@ -102,8 +96,6 @@ TASK KeyboardMonitor(void *arg) {
     oscillators_t *oscs = (oscillators_t *) arg;
     struct input_event InputEvent[64];
     int Index;
-
-    struct mq_attr msgq_attr;
 
     //----- READ KEYBOARD EVENTS -----
     while (!end_tasks) {
@@ -202,10 +194,10 @@ TASK KeyboardMonitor(void *arg) {
                         //----- KEY DOWN -----
                         //printf("Key down - key code: %d\n", InputEvent[Index].code);
 
-                        if (keycode >= 2 && keycode <= 8 ||
-                            keycode >= 16 && keycode <= 22 ||
-                            keycode >= 30 && keycode <= 36 ||
-                            keycode >= 44 && keycode <= 50
+                        if ((keycode >= 2 && keycode <= 8) ||
+                                (keycode >= 16 && keycode <= 22) ||
+                                (keycode >= 30 && keycode <= 36) ||
+                                (keycode >= 44 && keycode <= 50)
                         ) {
                             for (int i = 0; i < NUM_OSCS; i++) {
                                 if (keyTracker[i] == 0) {

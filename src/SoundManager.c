@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>    // gives malloc
-#include <math.h>
 #include <unistd.h>    // gives sleep
 #include <pthread.h>
 
@@ -12,7 +11,6 @@
 
 /* For testing */
 #include "oscillatorThread.h"
-#include "filter.h"
 
 #define  NBUFFERS 8
 
@@ -76,9 +74,6 @@ void al_init() {
 }
 
 void al_exit() {
-    // This function is not used (yet)
-    ALenum errorCode = 0;
-
     // Stop the sources
     alSourceStopv(NUM_OSCS, streaming_source);        //      streaming_source
 
@@ -89,31 +84,13 @@ void al_exit() {
         alDeleteBuffers(NBUFFERS, internal_buffer[i]);
     }
     
-    errorCode = alGetError();
+    alGetError();
     alcMakeContextCurrent(NULL);
-    errorCode = alGetError();
+    alGetError();
     alcDestroyContext(openal_output_context);
     alcCloseDevice(openal_output_device);
 }
 
-
-float filter(float cutofFreq) {
-    float RC = 1.0f / (cutofFreq * 2.0f * (float)M_PI);
-    float dt = 1.0f / SAMPLE_RATE;
-    float alpha = dt / (RC + dt);
-
-    return alpha;
-}
-
-void band_pass_example() {
-    BWBandPass *filter = create_bw_band_pass_filter(4, 250.0f, 2.0f, 45.0f);
-
-    for (int i = 0; i < 100; i++) {
-        printf("Output[%d]:%f\n", i, bw_band_pass(filter, (float) i * 100));
-    }
-
-    free_bw_band_pass(filter);
-}
 
 TASK audioThread(void* arg)
 {
@@ -192,7 +169,7 @@ TASK audioThread(void* arg)
             pthread_mutex_lock(&buffer->output[i]->mutex);
             if (buffer->output[i]->len == 1) { // full
                 // wait until some elements are consumed
-                int status = pthread_cond_wait(&buffer->output[i]->can_produce, &buffer->output[i]->mutex);
+                pthread_cond_wait(&buffer->output[i]->can_produce, &buffer->output[i]->mutex);
                 //printf("Status volume: %d\n", status);
             }
             buffer->output[i]->len = 1;
@@ -203,5 +180,6 @@ TASK audioThread(void* arg)
 
     }
     free(samples);
+    return NULL;
 }
 

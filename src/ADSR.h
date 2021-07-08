@@ -52,8 +52,6 @@ typedef struct {
 float calcCoef(float rate, float targetRatio);
 
 float process(ADSR* ptr);
-float getOutput(ADSR* ptr);
-int getState(ADSR* ptr);
 void gate(ADSR* ptr, bool turnon);
 void setAttackRate(ADSR* ptr, float rate);
 void setDecayRate(ADSR* ptr, float rate);
@@ -67,4 +65,4 @@ ADSR* createADSR();
 
 
 
-#endif
+#endif //ADRS_h
