@@ -9,10 +9,6 @@
 #include <AL/alc.h>
 #include <string.h>
 
-
-/* For testing */
-#include "oscillatorThread.h"
-
 #define  NBUFFERS 8
 
 ALCdevice *openal_output_device;
