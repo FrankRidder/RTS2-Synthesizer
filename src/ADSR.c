@@ -16,7 +16,6 @@
 //  You may copy and distribute verbatim copies of this document.
 //  You may modify and use this source code to create binary code for your own purposes, free or commercial.
 //
-
 #include "ADSR.h"
 #include <math.h>
 #include <stdlib.h>

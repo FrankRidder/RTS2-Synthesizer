@@ -1,6 +1,6 @@
-#include <pthread.h>
-
 #include "oscillatorThread.h"
+
+#include <pthread.h>
 #include "shared.h"
 
 TASK oscillatorThread(void *arg) {

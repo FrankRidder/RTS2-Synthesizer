@@ -1,8 +1,9 @@
+#include "audioThread.h"
+
 #include <stdio.h>
 #include <stdlib.h>    // gives malloc
 #include <unistd.h>    // gives sleep
 #include <pthread.h>
-
 
 #include <AL/al.h>
 #include <AL/alc.h>

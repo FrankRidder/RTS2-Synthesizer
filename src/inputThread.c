@@ -9,7 +9,7 @@
 #include <math.h>
 
 //test
-#include "SoundManager.h"
+#include "audioThread.h"
 
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
@@ -215,7 +215,6 @@ TASK KeyboardMonitor(void *arg) {
                         for (int i = 0; i < NUM_OSCS; i++) {
                             if (keyTracker[i] == InputEvent[Index].code) {
                                 keyTracker[i] = 0;
-                                oscs[i].pitch = 0;
                                 oscs[i].turnon = false;
                                 break;
                             }

@@ -6,7 +6,7 @@
 
 //Functions used by threads
 #include "inputThread.h"
-#include "SoundManager.h"
+#include "audioThread.h"
 #include "oscillatorThread.h"
 #include "filterThread.h"
 #include "volumeThread.h"

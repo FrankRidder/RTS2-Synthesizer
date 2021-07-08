@@ -7,9 +7,9 @@
  * Email: adis@live.cn
  *  https://www.mathworks.com/matlabcentral/profile/authors/3734620-disi-a
  */
+#include "filter.h"
 #include <stdlib.h>
 #include <math.h>
-#include "filter.h"
 
 #if DOUBLE_PRECISION
 #define COS cos
