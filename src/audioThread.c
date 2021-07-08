@@ -130,6 +130,17 @@ TASK audioThread(void* arg)
         ALuint  uiBuffer;
         for (int i = 0; i < NUM_OSCS; i++)
         {
+            int all_zero = 1;
+            for (int j = 0; j < SAMPLES_PER_BUFFER; j++)
+            {
+                if (sample_buffers[i][j] != 0) 
+                { 
+                    all_zero = 0; 
+                    break; 
+                }
+            }
+            if (all_zero) continue;
+
             do {
                 alGetSourcei(streaming_source[i],AL_BUFFERS_PROCESSED,&availBuffers);
                 al_check_error("alStream");
