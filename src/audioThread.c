@@ -117,7 +117,6 @@ TASK audioThread(void* arg)
             // signal the fact that new items may be produced
             pthread_cond_signal(&buffer->input[i]->can_produce);
             pthread_mutex_unlock(&buffer->input[i]->mutex);
-            //printf("Pipeline %d done\n", buffer->thread_id);
         }
 
 
@@ -142,14 +141,12 @@ TASK audioThread(void* arg)
                 al_check_error("alStream");
                 usleep(50);
             } while (availBuffers == 0 && !end_tasks);
-            //printf("avail buffers %d\n", availBuffers);
 
             if (availBuffers >= 1 && !end_tasks)
             {
                 // Remove the buffer from the queue (uiBuffer contains the buffer ID for the dequeued buffer)
                 uiBuffer = 0;
                 alSourceUnqueueBuffers(streaming_source[i], 1, &uiBuffer);
-                //printf("Buffers left: %d\n", availBuffers);
                 alBufferData( uiBuffer, AL_FORMAT_MONO16, sample_buffers[i], SAMPLES_PER_BUFFER, SAMPLE_RATE);
                 al_check_error("alBufferData");
 
@@ -178,7 +175,6 @@ TASK audioThread(void* arg)
             if (buffer->output[i]->len == 1) { // full
                 // wait until some elements are consumed
                 pthread_cond_wait(&buffer->output[i]->can_produce, &buffer->output[i]->mutex);
-                //printf("Status volume: %d\n", status);
             }
             buffer->output[i]->len = 1;
             // signal the fact that new items may be consumed

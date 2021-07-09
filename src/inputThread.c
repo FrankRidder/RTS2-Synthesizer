@@ -49,16 +49,12 @@ int KeyboardSetup(TASK pathname) {
         close(FileDevice);
         return 0;
     }
-    //printf("Input driver version is %d.%d.%d\n", version >> 16, (version >> 8) & 0xff, version & 0xff);
 
     //----- GET DEVICE INFO -----
     ioctl(FileDevice, EVIOCGID, id);
-    //printf("Input device ID: bus 0x%x vendor 0x%x product 0x%x version 0x%x\n", id[ID_BUS], id[ID_VENDOR], id[ID_PRODUCT], id[ID_VERSION]);
 
     memset(bit, 0, sizeof(bit));
     ioctl(FileDevice, EVIOCGBIT(0, EV_MAX), bit[0]);
-    printf("Waiting for input...\r\n");
-    //printf("Filter cut-off frequency: %d", filter_freq);
     return 1;
 
     
@@ -219,7 +215,6 @@ TASK KeyboardMonitor(void *arg) {
                                 break;
                             }
                         }
-                        // stopPlaying(0);
                     }
                 }
             }

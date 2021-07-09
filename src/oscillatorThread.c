@@ -28,7 +28,6 @@ TASK oscillatorThread(void *arg) {
         if (buffer->output->len == 1) { // full
             // wait until some elements are consumed
             pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
-            //printf("Status osc: %d\n", status);
         }
 
         if (buffer->osc->pitch == 0)
