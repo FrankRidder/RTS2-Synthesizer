@@ -54,7 +54,6 @@ TASK volumeThread(void *arg) {
         if (buffer->output->len == 1) { // full
             // wait until some elements are consumed
             pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
-            //printf("Status volume: %d\n", status);
         }
 
         memcpy(buffer->output->buf, samples, SAMPLES_PER_BUFFER);

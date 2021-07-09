@@ -41,7 +41,7 @@ void initialiseTerminal() {
 void createThreads() {
     end_tasks = 0;
 
-    // Shared variable initialising - TODO: need clean up
+    // Shared variable initialising
     filter_freq = 2000;
     global_volume = 1;
     filter_activated = 1;
@@ -58,7 +58,6 @@ void createThreads() {
         
     printf("Creating buffers .. \r\n");
 
-    //static buffer_t buffer_from_keyboard_to_osc = BUFFER_INITIALIZER;
     static buffer_t buf_osc_to_filter[NUM_OSCS];
     static buffer_t buf_filter_to_volume[NUM_OSCS];
     static buffer_t buf_volume_to_audio[NUM_OSCS];
@@ -109,7 +108,6 @@ void createThreads() {
         printf("Error when creating keyboard thread: %d",err);
     }
 
-    //static oscThreads[]
     for (int i = 0; i < NUM_OSCS; i++)
     {
         err = pthread_create(&threads[thread_id++], &tattr, oscillatorThread, (void*)&arg_oscillator[i]);
@@ -157,12 +155,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    signal(SIGTSTP, sighandler);    // Disable CTRL+Z
-    initialiseTerminal();           // Disable echo
-    al_init();                      // Initialise sound module
-    KeyboardSetup((void *) argv[1]);  // Initialise the keyboard
-    createThreads();                // Create threads
+    signal(SIGTSTP, sighandler);        // Disable CTRL+Z
+    initialiseTerminal();               // Disable echo
+    al_init();                          // Initialise sound module
+    KeyboardSetup((void *) argv[1]);    // Initialise the keyboard
+    createThreads();                    // Create threads
 
-    terminate();                    // Wait for threads to end and terminate program
+    terminate();                        // Wait for threads to end and terminate program
     return 0;
 }

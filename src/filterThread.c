@@ -46,7 +46,6 @@ TASK filterThread(void* arg)
         if (buffer->output->len == 1) { // full
             // wait until some elements are consumed
             pthread_cond_wait(&buffer->output->can_produce, &buffer->output->mutex);
-            //printf("Status filter: %d\n", status);
         }
 
         memcpy(buffer->output->buf, samples, SAMPLES_PER_BUFFER);
@@ -55,8 +54,6 @@ TASK filterThread(void* arg)
         // signal the fact that new items may be consumed
         pthread_cond_signal(&buffer->output->can_consume);
         pthread_mutex_unlock(&buffer->output->mutex);
-        //printf("filter thread ran\n");
-
     }
     free_bw_low_pass(filter_bw);
 

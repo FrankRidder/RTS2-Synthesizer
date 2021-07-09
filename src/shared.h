@@ -23,15 +23,22 @@
     .free = true,                                       \
 })   
 
-typedef void* TASK;
 
-enum wavesforms{SIN, SQUARE, SAW, TRIANGLE};
+/*
+ * Global variables
+ */
+typedef void* TASK;
 int end_tasks;
+
 unsigned int filter_freq;
 float global_volume;
 int filter_activated;
 int octave;
 
+/*
+ * Oscillator structs
+ */
+enum wavesforms{SIN, SQUARE, SAW, TRIANGLE};
 typedef struct osc_type {
     unsigned int pitch;
     enum wavesforms waveform; 
@@ -41,13 +48,16 @@ typedef struct osc_type {
 
 oscillators_t oscillators[NUM_OSCS];
 
+/*
+ * Buffer structs
+ */
 typedef struct buffer_type{
-    short buf[SAMPLES_PER_BUFFER]; // the buffer
-    size_t len; // number of items in the buffer
+    short buf[SAMPLES_PER_BUFFER];      // the buffer
+    size_t len;                         // number of items in the buffer
 
-    pthread_mutex_t mutex; // needed to add/remove data from the buffer
-    pthread_cond_t can_produce; // signaled when items are removed
-    pthread_cond_t can_consume; // signaled when items are added
+    pthread_mutex_t mutex;              // needed to add/remove data from the buffer
+    pthread_cond_t can_produce;         // signaled when items are removed
+    pthread_cond_t can_consume;         // signaled when items are added
 } buffer_t;
 
 typedef struct {

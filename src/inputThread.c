@@ -49,16 +49,13 @@ int KeyboardSetup(TASK pathname) {
         close(FileDevice);
         return 0;
     }
-    //printf("Input driver version is %d.%d.%d\n", version >> 16, (version >> 8) & 0xff, version & 0xff);
 
     //----- GET DEVICE INFO -----
     ioctl(FileDevice, EVIOCGID, id);
-    //printf("Input device ID: bus 0x%x vendor 0x%x product 0x%x version 0x%x\n", id[ID_BUS], id[ID_VENDOR], id[ID_PRODUCT], id[ID_VERSION]);
 
     memset(bit, 0, sizeof(bit));
     ioctl(FileDevice, EVIOCGBIT(0, EV_MAX), bit[0]);
     printf("Waiting for input...\r\n");
-    //printf("Filter cut-off frequency: %d", filter_freq);
     return 1;
 
     
@@ -100,8 +97,6 @@ TASK KeyboardMonitor(void *arg) {
     //----- READ KEYBOARD EVENTS -----
     while (!end_tasks) {
         ReadDevice = (int) read(FileDevice, InputEvent, sizeof(struct input_event) * 64);
-
-        //printf("number of events: %d \r\n", ReadDevice / sizeof(struct input_event));
         if (ReadDevice < (int) sizeof(struct input_event)) {
             //This should never happen
             printf("haha fail\r\n");
@@ -121,8 +116,6 @@ TASK KeyboardMonitor(void *arg) {
                 if (InputEvent[Index].type == EV_KEY) {
                     if (InputEvent[Index].value == 2) {
                         //This is an auto repeat of a held down key
-                        //cout << (int)(InputEvent[Index].code) << " Auto Repeat";
-                        //cout << endl;
                     } else if (InputEvent[Index].value == 1) {
 
                         int keycode = InputEvent[Index].code;
@@ -190,9 +183,7 @@ TASK KeyboardMonitor(void *arg) {
                         }
                         
                         int n = (keycode + 1) % 14 + (12 * octave);
-                        //printf("%-2s%d  %d\n", NOTENAME(n), OCTAVE(n), (int) FREQUENCY(n + 1));
                         //----- KEY DOWN -----
-                        //printf("Key down - key code: %d\n", InputEvent[Index].code);
 
                         if ((keycode >= 2 && keycode <= 8) ||
                                 (keycode >= 16 && keycode <= 22) ||
@@ -204,14 +195,13 @@ TASK KeyboardMonitor(void *arg) {
                                     keyTracker[i] = InputEvent[Index].code;
                                     oscs[i].pitch = (int) FREQUENCY(n + 1);
                                     oscs[i].turnon = true;
-                                    oscs[i].waveform = (InputEvent[Index].code + 1) / 14; // TODO: Verify
+                                    oscs[i].waveform = (InputEvent[Index].code + 1) / 14;
                                     break;
                                 }
                             }
                         }
                     } else if (InputEvent[Index].value == 0) {
                         //----- KEY UP -----
-                        //printf("Key up - key code: %d\n", InputEvent[Index].code);
                         for (int i = 0; i < NUM_OSCS; i++) {
                             if (keyTracker[i] == InputEvent[Index].code) {
                                 keyTracker[i] = 0;
@@ -219,7 +209,6 @@ TASK KeyboardMonitor(void *arg) {
                                 break;
                             }
                         }
-                        // stopPlaying(0);
                     }
                 }
             }
