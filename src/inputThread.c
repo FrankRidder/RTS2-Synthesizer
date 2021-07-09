@@ -55,10 +55,7 @@ int KeyboardSetup(TASK pathname) {
 
     memset(bit, 0, sizeof(bit));
     ioctl(FileDevice, EVIOCGBIT(0, EV_MAX), bit[0]);
-    printf("Waiting for input...\r\n");
     return 1;
-
-    
 }
 
 void printInformation(oscillators_t *oscs)  
